@@ -1,33 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical">
         <LinearLayout
-            android:layout_marginTop="100dp"
-            android:layout_width="700dp"
-            android:layout_height="300dp"
+            android:layout_marginTop="50dp"
+            android:layout_width="400dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1">
+
                 <TextView
-                    android:layout_gravity="center_vertical"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
                     android:text="访谈对象:"
-                    android:textSize="50sp"/>
+                    android:textSize="20sp" />
+
                 <EditText
                     android:id="@+id/itv_person"
                     android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textSize="50sp"
-                    android:layout_height="match_parent"/>
+                    android:textSize="20sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -39,13 +44,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="访谈命名:"
-                    android:textSize="50sp"/>
+                    android:textSize="20sp"/>
                 <EditText
                     android:layout_weight="1"
                     android:id="@+id/itv_name"
                     android:layout_width="0dp"
-                    android:textSize="50sp"
-                    android:layout_height="match_parent"/>
+                    android:textSize="20sp"
+                    android:layout_height="wrap_content"/>
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -56,7 +61,7 @@
                     android:layout_height="wrap_content"
                     android:text="访谈日期:"
                     android:layout_gravity="center_vertical"
-                    android:textSize="50sp"/>
+                    android:textSize="20sp"/>
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -65,7 +70,7 @@
                     >
                 <TextView
                     android:id="@+id/date"
-                    android:textSize="50sp"
+                    android:textSize="20sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
                 </LinearLayout>
@@ -74,14 +79,14 @@
         <Button
         android:id="@+id/dateChoose"
         android:text="选择日期"
-        android:textSize="40sp"
+        android:textSize="20sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
         <Button
             android:text="确定"
             android:layout_marginTop="10dp"
-            android:textSize="40sp"
+            android:textSize="20sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </LinearLayout>
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

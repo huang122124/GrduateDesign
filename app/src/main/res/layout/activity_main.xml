@@ -24,8 +24,7 @@
             android:id="@+id/tv_itv_setting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="访谈设置"
-            android:textSize="20sp"/>
+            android:text="访谈设置" />
     </RelativeLayout>
         <RelativeLayout
             android:id="@+id/interview_collect"
@@ -39,8 +38,7 @@
                 android:id="@+id/tv_itv_collect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="访谈采录"
-                android:textSize="20sp"/>
+                android:text="访谈采录" />
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/contrast"
@@ -54,8 +52,7 @@
                 android:id="@+id/tv_contrast"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="文稿校对"
-                android:textSize="20sp"/>
+                android:text="文稿校对" />
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/query"
@@ -69,8 +66,7 @@
                 android:id="@+id/tv_query"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="访谈查询"
-                android:textSize="20sp"/>
+                android:text="访谈查询" />
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/print"
@@ -84,8 +80,7 @@
             android:id="@+id/tv_print"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="排版打印"
-            android:textSize="20sp"/>
+            android:text="排版打印" />
     </RelativeLayout>
         <RelativeLayout
             android:id="@+id/management"
@@ -99,8 +94,7 @@
                 android:id="@+id/tv_management"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="版面管理"
-                android:textSize="20sp"/>
+                android:text="版面管理" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -117,7 +111,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="系统设置"
-                android:textSize="20sp" />
+                />
         </RelativeLayout>
     </LinearLayout>
     <FrameLayout

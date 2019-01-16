@@ -7,12 +7,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.com.grduatedesign.Fragment.Fragment_contrast;
 import com.example.com.grduatedesign.Fragment.Fragment_itv_collect;
@@ -22,6 +25,12 @@ import com.example.com.grduatedesign.Fragment.Fragment_print;
 import com.example.com.grduatedesign.Fragment.Fragment_query;
 import com.example.com.grduatedesign.Fragment.Fragment_syt_setting;
 import com.example.com.grduatedesign.Utils.L;
+import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.IdentityVerifier;
+import com.iflytek.cloud.InitListener;
+import com.iflytek.cloud.SpeakerVerifier;
+import com.iflytek.cloud.SpeechConstant;
+import com.iflytek.cloud.SpeechUtility;
 
 import java.util.ArrayList;
 
@@ -49,13 +58,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private TextView tv_management;
     private TextView tv_syt_setting;
     private int currentTab;
+    private float size_px;
     private float size;
+//    private SpeakerVerifier verifier;
+    private IdentityVerifier verifier;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         initViews();
+
+
     }
+
+
 
     private void initViews() {
         //RelativeLaout
@@ -81,7 +98,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         tv_print=findViewById(R.id.tv_print);
         tv_management=findViewById(R.id.tv_management);
         tv_syt_setting=findViewById(R.id.tv_syt_setting);
-        size= tv_itv_setting.getTextSize();
+        size_px=tv_itv_setting.getTextSize();      //以px为单位
            //获取fragment
           fragments=new ArrayList<>();
           itv_setting=new Fragment_itv_setting();
@@ -102,9 +119,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         ft.add(R.id.frame_layout,fragments.get(0));
         currentTab=0;
         rl_itv_setting.setSelected(true);
-        tv_itv_setting.setTextSize(size+10);
+        size=px2sp(this,size_px);
+        L.d("size="+String.valueOf(size));
+        tv_itv_setting.setTextSize(size+5);        //以sp为单位
         ft.commit();
 
+    }
+    //px转换成sp
+    public static int px2sp(Context context, float pxValue) {
+        final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
+        return (int) (pxValue / fontScale + 0.5f);
     }
 
     @Override
@@ -156,7 +180,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
              case 0:
                  rl_itv_setting.setSelected(isSelected);
                  if (isSelected==true) {
-                     tv_itv_setting.setTextSize(size+10);
+                     tv_itv_setting.setTextSize(size+5);
                  }else {
                      tv_itv_setting.setTextSize(size);
                  }
@@ -164,7 +188,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
              case 1:
                  rl_itv_collect.setSelected(isSelected);
                  if (isSelected==true) {
-                     tv_itv_collect.setTextSize(size+10);
+                     tv_itv_collect.setTextSize(size+5);
                  }else {
                      tv_itv_collect.setTextSize(size);
                  }
@@ -172,7 +196,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
              case 2:
                  rl_contrast.setSelected(isSelected);
                  if (isSelected==true) {
-                     tv_contrast.setTextSize(size+10);
+                     tv_contrast.setTextSize(size+5);
                  }else {
                      tv_contrast.setTextSize(size);
                  }
@@ -180,7 +204,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
              case 3:
                  rl_query.setSelected(isSelected);
                  if (isSelected==true) {
-                     tv_query.setTextSize(size+10);
+                     tv_query.setTextSize(size+5);
                  }else {
                      tv_query.setTextSize(size);
                  }
@@ -188,7 +212,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
              case 4:
                  rl_print.setSelected(isSelected);
                  if (isSelected==true) {
-                     tv_print.setTextSize(size+10);
+                     tv_print.setTextSize(size+5);
                  }else {
                      tv_print.setTextSize(size);
                  }
@@ -196,7 +220,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
              case 5:
                  rl_management.setSelected(isSelected);
                  if (isSelected==true) {
-                     tv_management.setTextSize(size+10);
+                     tv_management.setTextSize(size+5);
                  }else {
                      tv_management.setTextSize(size);
                  }
@@ -204,7 +228,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
              case 6:
                  rl_syst_setting.setSelected(isSelected);
                  if (isSelected==true) {
-                     tv_syt_setting.setTextSize(size+10);
+                     tv_syt_setting.setTextSize(size+5);
                  }else {
                      tv_syt_setting.setTextSize(size);
                  }

@@ -7,10 +7,10 @@ import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechUtility;
 
 public class BaseApplicition extends Application {
-    private Context context=getApplicationContext();
+
     @Override
     public void onCreate() {
         super.onCreate();
-        SpeechUtility.createUtility(context,SpeechConstant.APPID+"=5c316803");
+        SpeechUtility.createUtility(this,"appid="+"5c316803,"+SpeechConstant.FORCE_LOGIN+"=true");
     }
 }
