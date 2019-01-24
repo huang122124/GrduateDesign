@@ -40,7 +40,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity android:name=".MainActivity"
-            >
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -48,6 +48,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".BaseActivity"/>
+        <activity android:name=".Activity.GroupManagerActivity"/>
+        <activity android:name=".Activity.ResultIdentifyActivity"/>
+        <activity android:name=".Activity.VocalIdentifyActivity"/>
     </application>
 
 </manifest>

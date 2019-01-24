@@ -1,21 +1,12 @@
 package com.example.com.grduatedesign;
 
 import android.content.Context;
-import android.os.IBinder;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.TypedValue;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.com.grduatedesign.Fragment.Fragment_contrast;
 import com.example.com.grduatedesign.Fragment.Fragment_itv_collect;
@@ -24,13 +15,9 @@ import com.example.com.grduatedesign.Fragment.Fragment_management;
 import com.example.com.grduatedesign.Fragment.Fragment_print;
 import com.example.com.grduatedesign.Fragment.Fragment_query;
 import com.example.com.grduatedesign.Fragment.Fragment_syt_setting;
+import com.example.com.grduatedesign.Fragment.Fragment_add_person;
 import com.example.com.grduatedesign.Utils.L;
-import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.IdentityVerifier;
-import com.iflytek.cloud.InitListener;
-import com.iflytek.cloud.SpeakerVerifier;
-import com.iflytek.cloud.SpeechConstant;
-import com.iflytek.cloud.SpeechUtility;
 
 import java.util.ArrayList;
 
@@ -42,7 +29,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private Fragment management;
     private Fragment print;
     private Fragment query;
-    private Fragment syst_setting;
+    private Fragment syt_setting;
+    private Fragment add_person;
     private RelativeLayout rl_itv_setting;
     private RelativeLayout rl_itv_collect;
     private RelativeLayout rl_contrast;
@@ -107,20 +95,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
           query=new Fragment_query();
           print=new Fragment_print();
           management=new Fragment_management();
-          syst_setting=new Fragment_syt_setting();
-          fragments.add(itv_setting);
-          fragments.add(itv_collect);
-          fragments.add(contrast);
-          fragments.add(query);
-          fragments.add(print);
-          fragments.add(management);
-          fragments.add(syst_setting);
+          add_person=new Fragment_add_person();
+        syt_setting=new Fragment_syt_setting();
+          fragments.add(itv_setting);      // 0
+          fragments.add(itv_collect);      // 1
+          fragments.add(contrast);         // 2
+          fragments.add(query);            // 3
+          fragments.add(print);              // 4
+          fragments.add(management);  // 5
+          fragments.add(syt_setting);        // 6
+          fragments.add(add_person);    // 7
         FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
         ft.add(R.id.frame_layout,fragments.get(0));
         currentTab=0;
         rl_itv_setting.setSelected(true);
         size=px2sp(this,size_px);
-        L.d("size="+String.valueOf(size));
         tv_itv_setting.setTextSize(size+5);        //以sp为单位
         ft.commit();
 

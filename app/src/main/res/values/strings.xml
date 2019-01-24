@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">GrduateDesign</string>
+    <string name="title_vocal_idf">声纹1:N检索示例</string>
 </resources>
