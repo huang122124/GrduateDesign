@@ -3,7 +3,7 @@ package com.example.com.grduatedesign.Utils;
 import android.util.Log;
 
 public class L {
-    private static final  String TAG="GrduateDesign";
+    private static final  String TAG="GraduateDesign";
     public static void d(String msg){
         Log.d(TAG,msg);
     }
