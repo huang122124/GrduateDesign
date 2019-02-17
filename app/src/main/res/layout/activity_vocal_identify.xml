@@ -64,6 +64,7 @@
             android:textSize="16sp" />
 
         <TextView
+            android:text="5816104333"
             android:id="@+id/vocal_idf_txt_groupid"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

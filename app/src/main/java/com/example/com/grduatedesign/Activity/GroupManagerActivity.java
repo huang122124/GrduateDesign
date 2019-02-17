@@ -16,7 +16,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.com.grduatedesign.MyAdapter;
+import com.example.com.grduatedesign.Adapter.MyAdapter;
+import com.example.com.grduatedesign.Entity.Statics;
 import com.example.com.grduatedesign.R;
 import com.example.com.grduatedesign.Utils.L;
 import com.iflytek.cloud.IdentityListener;
@@ -47,6 +48,7 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
     private MyAdapter adapter;
     private ProgressDialog mProDialog;
     private String authId;
+
     private String mfv_type;
     private ArrayList<Map<String,String>> mList;
     private RelativeLayout relativeLayout;
@@ -63,7 +65,9 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
             L.d( result.getResultString());
             try {
                 JSONObject resObj = new JSONObject(result.getResultString());
-                resObj.getString("group_id");
+                String group_id=resObj.getString("group_id");
+                etGroupId.setText(group_id);
+               showTip(group_id);
                 // 创建成功后将自己加入到组里
                 joinGroup(resObj.getString("group_id"));
             } catch (JSONException e) {
@@ -176,6 +180,19 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
 
 
     private IdentityListener mQueryListener = new IdentityListener() {
+        /* 查询组中人员结果示例：
+{
+    "ssub": "ipt",
+    "person": [
+        {
+            "user": " xxxxxxxx "
+        }
+    ],
+    "group_name": " xxxxxxxx ",
+    "sst": "query",
+    "ret": 0,
+    "group_id": " xxxxxxxx "
+}*/
         @Override
         public void onResult(IdentityResult result, boolean islast) {
             Log.d(TAG, result.getResultString());
@@ -395,6 +412,7 @@ public class GroupManagerActivity extends AppCompatActivity implements View.OnCl
 	 * 查询指定组中成员
 	 * @param groupJoin
 	 */
+
 	private void queryGroup(String groupJoin) {
 		String groupId;
 		if (!TextUtils.isEmpty(groupJoin)) {

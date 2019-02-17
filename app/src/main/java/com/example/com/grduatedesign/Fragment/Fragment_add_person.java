@@ -1,24 +1,35 @@
 package com.example.com.grduatedesign.Fragment;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.com.grduatedesign.Activity.GroupManagerActivity;
+import com.example.com.grduatedesign.Activity.VocalIdentifyActivity;
+import com.example.com.grduatedesign.Entity.Statics;
 import com.example.com.grduatedesign.R;
 import com.example.com.grduatedesign.Utils.L;
 import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.IdentityListener;
+import com.iflytek.cloud.IdentityResult;
+import com.iflytek.cloud.IdentityVerifier;
 import com.iflytek.cloud.InitListener;
 import com.iflytek.cloud.SpeakerVerifier;
 import com.iflytek.cloud.SpeechConstant;
@@ -31,6 +42,9 @@ import com.iflytek.cloud.VerifierResult;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Fragment_add_person extends Fragment implements View.OnClickListener {
     private static final int PWD_TYPE_TEXT = 1;
     private static final int PWD_TYPE_FREE = 2;
@@ -39,6 +53,8 @@ public class Fragment_add_person extends Fragment implements View.OnClickListene
     private int mPwdType = PWD_TYPE_FREE;
     // 声纹识别对象
     private SpeakerVerifier mVerifier;
+    // 身份验证对象
+    private IdentityVerifier mIdVerifier;
     // 声纹AuthId，用户在云平台的身份标识，也是声纹模型的标识
     // 请使用英文字母或者字母和数字的组合，勿使用中文字符
     private String authId = "";
@@ -52,6 +68,7 @@ private String role;
     private TextView mShowRegFbkTextView;
     private TextView mRecordTimeTextView;
     private Toast mToast;
+    private LinearLayout ll_add_person;
     private Context mContext=getActivity();
 
 public  static Fragment_add_person newInstance(String auth_id,String name,Boolean isMale,String role){
@@ -68,6 +85,7 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.fragment_add_person,container,false);
+        mIdVerifier = IdentityVerifier.createVerifier(mContext, null);
         return view;
     }
 
@@ -82,7 +100,7 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
             role = getArguments().getString("role");
             mAuthIdTextView.setText(authId);
         }
-          L.d("id:"+authId);
+          L.d("Hello,"+authId);
         // 初始化SpeakerVerifier，InitListener为初始化完成后的回调接口
         mVerifier = SpeakerVerifier.createVerifier(getActivity(), new InitListener() {
 
@@ -102,7 +120,7 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
 
 
 
-    private void initView(View view) {
+    private void initView(@NonNull View view) {
         mResultEditText = (EditText)view.findViewById(R.id.edt_result);
         mAuthIdTextView = (TextView) view.findViewById(R.id.txt_authorid);
         mShowPwdTextView = (TextView) view.findViewById(R.id.showPwd);
@@ -118,10 +136,26 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
         view.findViewById(R.id.isv_delete).setOnClickListener(this);
         view.findViewById(R.id.back).setOnClickListener(this);
         view.findViewById(R.id.isv_identity).setOnClickListener(this);
+        view.findViewById(R.id.isv_join).setOnClickListener(this);
+        view.findViewById(R.id.vocal).setOnClickListener(this);
+        view.findViewById(R.id.query).setOnClickListener(this);
         mToast = Toast.makeText(getActivity(), "", Toast.LENGTH_SHORT);
         mToast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 0);
+        ll_add_person=view.findViewById(R.id.ll_add_person);
+        // 等待框设置为不可取消
 
-
+//        mProDialog.setCanceledOnTouchOutside(false);
+//        mProDialog.setTitle("请稍候");
+//
+//        mProDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+//            @Override
+//            public void onCancel(DialogInterface dialog) {
+//                // cancel进度框时,取消正在进行的操作
+//                if (null != mIdVerifier) {
+//                    mIdVerifier.cancel();
+//                }
+//            }
+//        });
 
     }
 
@@ -157,7 +191,6 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
             return;
         }
         switch (v.getId()){
-            //第一步：
             case R.id.isv_search:
                 mShowMsgTextView.setText("");
                 performModelOperation("que", mModelOperationListener);
@@ -165,8 +198,9 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
             case R.id.isv_delete:
                 initTextView();
                 performModelOperation("del", mModelOperationListener);
+                deleteMember(authId,false);
                 break;
-            //第二步 注册
+            //注册
            case R.id.isv_register:
                initTextView();
                 // 清空参数
@@ -226,6 +260,17 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
             case R.id.back:
                 getActivity().getSupportFragmentManager().popBackStack();
                 break;
+            case R.id.isv_join:
+                //joinGroup();
+                break;
+            case R.id.vocal:
+                Intent vocal_intent=new Intent(getActivity(), VocalIdentifyActivity.class);
+                vocal_intent.putExtra("group_id",Statics.GROUPID);
+                startActivity(vocal_intent);
+                break;
+            case R.id.query:
+                queryGroup();
+                break;
             case R.id.isv_identity:
                 Intent intent=new Intent(getActivity(), GroupManagerActivity.class);
                 intent.putExtra("auth_id",authId);
@@ -238,6 +283,188 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
         }
     }
 
+    private void deleteMember(String authId, boolean deleteGroup) {
+        if (authId==null){
+            return;
+        }
+        // sst=add，auth_id=eqhe，group_id=123456，scope=person
+        mIdVerifier.setParameter(SpeechConstant.PARAMS, null);
+        // 设置会话场景
+        mIdVerifier.setParameter(SpeechConstant.MFV_SCENES, "ipt");
+        // 用户id
+        mIdVerifier.setParameter(SpeechConstant.AUTH_ID, authId);
+
+        // 设置模型参数，若无可以传空字符传
+        StringBuffer params2 = new StringBuffer();
+        if(deleteGroup) {
+            params2.append("scope=group");
+        } else {
+            // 删除组中指定auth_id用户
+            params2.append("scope=person");
+            params2.append(",auth_id="+authId);
+        }
+        params2.append(",group_id=" + Statics.GROUPID);
+        // 执行模型操作
+        mIdVerifier.execute("ipt", "delete", params2.toString(), mDeleteListener);
+    }
+
+    private void queryGroup() {
+        String groupId=Statics.GROUPID;
+        mIdVerifier.setParameter(SpeechConstant.PARAMS, null);
+        // 设置会话场景
+        mIdVerifier.setParameter(SpeechConstant.MFV_SCENES, "ipt");
+        // 用户id
+        mIdVerifier.setParameter(SpeechConstant.AUTH_ID, authId);
+        // 设置模型参数，若无可以传空字符传
+        StringBuffer params2 = new StringBuffer();
+        params2.append("scope=group");
+        params2.append(",group_id=" + groupId);
+        // 执行模型操作
+        mIdVerifier.execute("ipt", "query", params2.toString(), mQueryListener);
+    }
+
+
+    /**
+     * 关闭进度条
+     */
+    private void stopProgress() {
+
+        ll_add_person.setEnabled(true);
+    }
+
+
+    /**
+     * 开启进度条
+     */
+    private void startProgress(String msg) {
+//        mProDialog.setMessage(msg);
+//        mProDialog.show();
+        ll_add_person.setEnabled(false);
+    }
+
+    private void joinGroup() {
+        String groupId= Statics.GROUPID;
+        startProgress("正在加入组...");
+
+        // sst=add，auth_id=eqhe，group_id=123456，scope=person
+        mIdVerifier.setParameter(SpeechConstant.PARAMS, null);
+        // 设置会话场景
+        mIdVerifier.setParameter(SpeechConstant.MFV_SCENES, "ipt");
+        // 用户id
+        mIdVerifier.setParameter(SpeechConstant.AUTH_ID, authId);
+        // 设置模型参数，若无可以传空字符传
+        StringBuffer params2 = new StringBuffer();
+        params2.append("auth_id=" + authId);
+        params2.append(",scope=person");
+        params2.append(",group_id=" + groupId);
+        // 执行模型操作
+        mIdVerifier.execute("ipt", "add", params2.toString(), mAddListener);
+
+    }
+    /**
+     * 加入组监听器
+     */
+    private IdentityListener mAddListener = new IdentityListener() {
+
+        @Override
+        public void onResult(IdentityResult result, boolean islast) {
+            L.d("加入组result:"+result.getResultString());
+            try {
+                JSONObject resObj = new JSONObject(result.getResultString());
+                // 保存到用户信息中，用来显示用户加人的组
+                String group_name=resObj.getString("group_name");
+                String group_id=resObj.getString("group_id");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            showTip("加入组成功");
+            stopProgress();
+        }
+
+        @Override
+        public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+        }
+
+        @Override
+        public void onError(SpeechError error) {
+            showTip(error.getPlainDescription(true));
+        }
+    };
+
+    /**
+     * 删除组成员监听器
+     */
+    private IdentityListener mDeleteListener = new IdentityListener() {
+        @Override
+        public void onResult(IdentityResult result, boolean islast) {
+            L.d(result.getResultString());
+            try {
+                JSONObject resObj = new JSONObject(result.getResultString());
+                L.d("resObj == "+resObj.toString());
+                int ret = resObj.getInt("ret");
+                if(0 != ret) {
+                    onError(new SpeechError(ret));
+                    return;
+                } else {
+                    if(result.getResultString().contains("user")) {
+                        String user = resObj.getString("user");
+                        showTip("删除组成员"+user+"成功");
+                    } else {
+                        showTip("删除组成功");
+                        }
+
+                    }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        @Override
+        public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+
+        }
+
+        @Override
+        public void onError(SpeechError error) {
+            showTip(error.getPlainDescription(true));
+        }
+    };
+
+    /**
+     * 查询组中成员监听器
+     */
+    private IdentityListener mQueryListener = new IdentityListener() {
+        /* 查询组中人员结果示例：
+{
+    "ssub": "ipt",
+    "person": [
+        {
+            "user": " xxxxxxxx "
+        }
+    ],
+    "group_name": " xxxxxxxx ",
+    "sst": "query",
+    "ret": 0,
+    "group_id": " xxxxxxxx "
+}*/
+        @Override
+        public void onResult(IdentityResult result, boolean islast) {
+            L.d("查询组中成员结果："+result.getResultString());
+            showTip("查询成功");
+
+        }
+        @Override
+        public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+
+        }
+        @Override
+        public void onError(SpeechError error) {
+            L.d("查询组中成员结果："+error.getPlainDescription(true));
+            //showTip(ErrorDesc.getDesc(error) + ":" + error.getErrorCode());
+        }
+    };
+
+
     private SpeechListener mModelOperationListener = new SpeechListener() {
 
         @Override
@@ -247,7 +474,6 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
         @Override
         public void onBufferReceived(byte[] buffer) {
             String result = new String(buffer);
-            L.d("查询结果："+result);
             try {
                 JSONObject object = new JSONObject(result);
                 String cmd = object.getString("cmd");
@@ -420,7 +646,7 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
                 if (result.suc == result.rgn) {
                     mShowMsgTextView.setText("注册成功");
                     mResultEditText.setText("您的数字密码声纹ID：\n" + result.vid);
-                    L.d("onResult: 自由说"+result.vid );
+                    joinGroup();
                 }
 
             }else {
