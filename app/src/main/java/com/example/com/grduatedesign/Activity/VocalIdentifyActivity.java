@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -74,7 +75,6 @@ public class VocalIdentifyActivity extends AppCompatActivity implements View.OnC
 
             dismissProDialog();
             mIsWorking = false;
-
             handleResult(result);
         }
 
@@ -167,6 +167,7 @@ public class VocalIdentifyActivity extends AppCompatActivity implements View.OnC
             params.append("pwdt=" + mPwdType + ",");
             params.append(",group_id=" + mGroupId +",topc=3");
             mIdVerifier.writeData("ivp", params.toString(), data, 0, length);
+
         }
 
         @Override
@@ -273,6 +274,8 @@ public class VocalIdentifyActivity extends AppCompatActivity implements View.OnC
         mIdVerifier.setParameter(SpeechConstant.MFV_SST, "identify");
         // 设置组ID
         mIdVerifier.setParameter("group_id", mGroupId);
+        mIdVerifier.setParameter(SpeechConstant.AUDIO_FORMAT,"wav");
+        mIdVerifier.setParameter(SpeechConstant.ASR_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/msc/ivp.wav");
         // 设置监听器，开始会话
         mIdVerifier.startWorking(mSearchListener);
     }

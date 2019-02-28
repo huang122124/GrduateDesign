@@ -1,6 +1,8 @@
 package com.example.com.grduatedesign;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.ColorSpace;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
@@ -18,6 +20,9 @@ import com.example.com.grduatedesign.Fragment.Fragment_syt_setting;
 import com.example.com.grduatedesign.Fragment.Fragment_add_person;
 import com.example.com.grduatedesign.Utils.L;
 import com.iflytek.cloud.IdentityVerifier;
+
+import org.litepal.LitePal;
+import org.litepal.tablemanager.Connector;
 
 import java.util.ArrayList;
 
@@ -56,7 +61,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         setContentView(R.layout.activity_main);
         initViews();
-
+        SQLiteDatabase db= LitePal.getDatabase();   //LitePal提供了一个便捷的方法来获取到SQLiteDatabase的实例
 
     }
 

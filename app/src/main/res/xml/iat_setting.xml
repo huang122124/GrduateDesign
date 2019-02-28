@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" > 
+
+    
+	<CheckBoxPreference
+		android:key="@string/pref_key_iat_show"
+		android:title="@string/pref_title_iat_show"
+		android:defaultValue="true" />
+
+</PreferenceScreen>
+

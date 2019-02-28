@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.example.com.grduatedesign.Activity.GroupManagerActivity;
 import com.example.com.grduatedesign.Activity.VocalIdentifyActivity;
 import com.example.com.grduatedesign.Entity.Statics;
+import com.example.com.grduatedesign.Model.Imformation;
 import com.example.com.grduatedesign.R;
 import com.example.com.grduatedesign.Utils.L;
 import com.iflytek.cloud.ErrorCode;
@@ -41,8 +42,10 @@ import com.iflytek.cloud.VerifierResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.litepal.LitePal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Fragment_add_person extends Fragment implements View.OnClickListener {
@@ -206,7 +209,7 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
                 // 清空参数
                 mVerifier.setParameter(SpeechConstant.PARAMS, null);
                 mVerifier.setParameter(SpeechConstant.ISV_AUDIO_PATH,
-                        Environment.getExternalStorageDirectory().getAbsolutePath() + "/msc/test.pcm");
+                        Environment.getExternalStorageDirectory().getAbsolutePath() + "/msc/"+authId+"_register.pcm");
                 // 对于某些麦克风非常灵敏的机器，如nexus、samsung i9300等，建议加上以下设置对录音进行消噪处理
 //       mVerify.setParameter(SpeechConstant.AUDIO_SOURCE, "" + MediaRecorder.AudioSource.VOICE_RECOGNITION);
                 if (mPwdType==PWD_TYPE_FREE){
@@ -232,7 +235,7 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
                 // 清空参数
                 mVerifier.setParameter(SpeechConstant.PARAMS, null);
                 mVerifier.setParameter(SpeechConstant.ISV_AUDIO_PATH,
-                        Environment.getExternalStorageDirectory().getAbsolutePath() + "/msc/verify.pcm");
+                        Environment.getExternalStorageDirectory().getAbsolutePath() + "/msc/"+authId+"_verify.pcm");
                 mVerifier = SpeakerVerifier.getVerifier();
                 // 设置业务类型为验证
                 mVerifier.setParameter(SpeechConstant.ISV_SST, "verify");
@@ -379,7 +382,23 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
                 e.printStackTrace();
             }
             showTip("加入组成功");
+            addToDatabase();   //成功加入组后添加到本地数据库
             stopProgress();
+        }
+
+        private void addToDatabase() {
+            Imformation imformation= new Imformation();
+            imformation.setAuthId(authId);
+            imformation.setName(name);
+            imformation.setMale(isMale);
+            imformation.setRole(role);
+            imformation.save();
+            if (imformation.save()){
+                mShowMsgTextView.setText("加入数据库成功！");
+                showTip("加入数据库成功！");
+            }else {
+                showTip("加入数据库失败！");
+            }
         }
 
         @Override
@@ -410,6 +429,8 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
                     if(result.getResultString().contains("user")) {
                         String user = resObj.getString("user");
                         showTip("删除组成员"+user+"成功");
+                        deleteFromDatabase();
+                        mShowMsgTextView.setText("成功从数据库删除");
                     } else {
                         showTip("删除组成功");
                         }
@@ -429,6 +450,10 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
             showTip(error.getPlainDescription(true));
         }
     };
+
+    private void deleteFromDatabase() {
+        LitePal.deleteAll(Imformation.class,"authId=?",authId);
+    }
 
     /**
      * 查询组中成员监听器
@@ -489,6 +514,7 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
                 } else if ("que".equals(cmd)) {
                     if (ret == ErrorCode.SUCCESS) {
                         Toast.makeText(getActivity(), "模型存在", Toast.LENGTH_SHORT).show();
+                        QueryData();
                     } else if (ret == ErrorCode.MSP_ERROR_FAIL) {
                         Toast.makeText(getActivity(), "模型不存在", Toast.LENGTH_SHORT).show();
                     }
@@ -499,6 +525,7 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
             }
         }
 
+
         @Override
         public void onCompleted(SpeechError error) {
             if (null != error && ErrorCode.SUCCESS != error.getErrorCode()) {
@@ -507,7 +534,27 @@ public  static Fragment_add_person newInstance(String auth_id,String name,Boolea
             }
         }
     };
-   // 第三步 监听参数
+
+    private void QueryData() {
+            List<Imformation>imformation =LitePal.where("authId like ?",authId).find(Imformation.class);
+            Imformation im=imformation.get(0);
+            StringBuilder builder = new StringBuilder();
+            builder.append("ID:" + im.getAuthId()+"   ");
+            builder.append("姓名: " + im.getName() + "\n");
+            if ( im.getMale()) {
+                builder.append("性别：男"+"  ");
+            } else {
+                builder.append("性别：女" + "  ");
+            }
+            builder.append("角色: " + im.getRole());
+            mRecordTimeTextView.setText(builder.toString());
+            L.d(builder.toString());
+
+
+
+    }
+
+    // 第三步 监听参数
     private VerifierListener mVerifyListener = new VerifierListener() {
 
         @Override

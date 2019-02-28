@@ -3,22 +3,64 @@
     xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_horizontal">
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <TextView
+                android:width="0dp"
+                android:layout_weight="5"
+                android:text="请按开始并说话"
+                android:id="@+id/tv_speak"
+                android:textSize="25sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <FrameLayout
+                android:layout_weight="3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent">
+
+                <SurfaceView
+                    android:id="@+id/surfaceView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    />
+
+
+            </FrameLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
        <Button
-           android:id="@+id/start"
+           android:id="@+id/ask"
            android:layout_gravity="bottom"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:text="开始"
-           android:textSize="50sp"/>
+           android:text="问"
+           android:textSize="30sp"/>
+        <ImageView
+            android:layout_gravity="bottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/luyin"/>
         <Button
             android:id="@+id/end"
             android:layout_gravity="bottom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="结束"
-            android:textSize="50sp"/>
+            android:textSize="30sp"/>
+            <Button
+                android:id="@+id/start_video"
+                android:layout_gravity="bottom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="开始录制"
+                android:textSize="30sp"/>
+        </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
