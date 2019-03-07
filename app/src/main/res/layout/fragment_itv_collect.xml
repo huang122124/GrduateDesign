@@ -15,22 +15,33 @@
                 android:layout_weight="5"
                 android:text="请按开始并说话"
                 android:id="@+id/tv_speak"
-                android:textSize="25sp"
+                android:textSize="15sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-            <FrameLayout
+            <LinearLayout
+                android:orientation="vertical"
                 android:layout_weight="3"
                 android:layout_width="0dp"
-                android:layout_height="match_parent">
-
-                <SurfaceView
-                    android:id="@+id/surfaceView"
+                android:layout_height="match_parent"
+                >
+               <FrameLayout
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent">
+                <com.example.com.grduatedesign.Utils.AutoFitTextureView
+                    android:layout_gravity="top|center"
+                    android:id="@+id/texture_front"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     />
+                <com.example.com.grduatedesign.Utils.AutoFitTextureView
+                    android:layout_gravity="bottom|center"
+                    android:id="@+id/texture_back"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    />
+                </FrameLayout>
 
-
-            </FrameLayout>
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
@@ -41,7 +52,7 @@
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
            android:text="问"
-           android:textSize="30sp"/>
+           android:textSize="20sp"/>
         <ImageView
             android:layout_gravity="bottom"
             android:layout_width="wrap_content"
@@ -53,14 +64,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="结束"
-            android:textSize="30sp"/>
+            android:textSize="20sp"/>
             <Button
-                android:id="@+id/start_video"
+                android:id="@+id/front_record"
                 android:layout_gravity="bottom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="开始录制"
-                android:textSize="30sp"/>
+                android:textSize="20sp"/>
+            <Button
+                android:id="@+id/front_cam"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="开启前摄像头"/>
+            <Button
+                android:id="@+id/back_cam"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="开启后摄像头"/>
         </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

@@ -32,7 +32,7 @@
     <uses-feature android:name="android.hardware.camera" />
 
     <application
-        android:screenOrientation="landscape"
+        android:screenOrientation="sensorLandscape"
         android:name=".Applicition.BaseApplicition"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
