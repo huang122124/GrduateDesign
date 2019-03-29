@@ -1,8 +1,7 @@
-package com.example.com.grduatedesign;
+package com.example.com.grduatedesign.Activity;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.ColorSpace;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
@@ -18,19 +17,18 @@ import com.example.com.grduatedesign.Fragment.Fragment_print;
 import com.example.com.grduatedesign.Fragment.Fragment_query;
 import com.example.com.grduatedesign.Fragment.Fragment_syt_setting;
 import com.example.com.grduatedesign.Fragment.Fragment_add_person;
-import com.example.com.grduatedesign.Utils.L;
+import com.example.com.grduatedesign.R;
 import com.iflytek.cloud.IdentityVerifier;
 
 import org.litepal.LitePal;
-import org.litepal.tablemanager.Connector;
 
 import java.util.ArrayList;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     private ArrayList<Fragment>fragments;
     private Fragment contrast;
-    private Fragment itv_collect;
-    private Fragment itv_setting;
+   public Fragment itv_collect;
+    public Fragment itv_setting;
     private Fragment management;
     private Fragment print;
     private Fragment query;
@@ -71,7 +69,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         //RelativeLaout
         rl_itv_setting=findViewById(R.id.interview_setting);
         rl_itv_collect=findViewById(R.id.interview_collect);
-        rl_contrast=findViewById(R.id.contrast);
+        rl_contrast=findViewById(R.id.loadfile);
         rl_query=findViewById(R.id.query);
         rl_print=findViewById(R.id.print);
         rl_management=findViewById(R.id.management);
@@ -134,7 +132,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             case R.id.interview_collect:
                 changeTab(1);
                 break;
-            case R.id.contrast:
+            case R.id.loadfile:
                 changeTab(2);
                 break;
             case R.id.query:
@@ -152,7 +150,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    private void changeTab(int Tab) {
+    public void changeTab(int Tab) {
          if (currentTab==Tab){
              return;
          }
@@ -168,7 +166,26 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         ft.commit();
 
     }
-
+    public void changeToCollect(String itv_person,String itv_name,String date){
+    if (currentTab==1){
+        return;
+    }
+    Fragment fragment_collect=fragments.get(1);
+    FragmentTransaction ft=getSupportFragmentManager().beginTransaction();
+    if (!fragment_collect.isAdded()){
+        ft.add(R.id.frame_layout,fragment_collect);
+    }
+    Bundle bundle=new Bundle();
+    bundle.putString("itv_person",itv_person);
+    bundle.putString("itv_name",itv_name);
+    bundle.putString("date",date);
+    fragment_collect.setArguments(bundle);
+    setStatus(currentTab,false);
+    ft.replace(R.id.frame_layout,fragment_collect);
+    currentTab=1;
+    setStatus(currentTab,true);
+    ft.commit();
+}
     private void setStatus(int currentTab, boolean isSelected) {
          switch (currentTab){
              case 0:

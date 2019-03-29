@@ -26,9 +26,10 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:text="访谈对象:"
-                    android:textSize="20sp" />
+                    android:textSize="23sp" />
 
                 <EditText
+                    android:text="环卫工"
                     android:id="@+id/itv_person"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -45,8 +46,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="访谈命名:"
-                    android:textSize="20sp"/>
+                    android:textSize="23sp"/>
                 <EditText
+                    android:text="对清洁的满意度"
                     android:layout_weight="1"
                     android:id="@+id/itv_name"
                     android:layout_width="0dp"
@@ -62,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:text="访谈日期:"
                     android:layout_gravity="center_vertical"
-                    android:textSize="20sp"/>
+                    android:textSize="23sp"/>
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
@@ -83,11 +85,24 @@
         android:textSize="20sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
         <Button
-            android:text="确定"
+            android:id="@+id/btn_collect"
+            android:text="开始录制"
             android:layout_marginTop="10dp"
             android:textSize="20sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/clear"
+            android:text="清空"
+            android:layout_marginTop="10dp"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

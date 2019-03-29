@@ -1,15 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-<LinearLayout
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center">
+    android:layout_height="match_parent">
+
+
     <TextView
+        android:id="@+id/itv_name"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="访谈名称"
+        android:textSize="23sp"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.13"></TextView>
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:background="#FFF5EE"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintLeft_toRightOf="@id/itv_name"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.3"></Spinner>
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="10dp"
+        android:layout_marginTop="8dp"
+        android:background="	#F2F2F2"
+        android:gravity="center_vertical"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:scrollbarSize="20dp"
+        android:scrollbarThumbVertical="@color/scrollbarThumb_color"
+        android:scrollbarTrackVertical="@android:color/white"
+        android:scrollbarStyle="insideOverlay"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.8"
+        app:layout_constraintHorizontal_bias="0.473"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/loadfile">
+        <EditText
+            android:id="@+id/contrast_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="content"
+            android:textSize="25sp"
+            android:singleLine="false"
+            />
+    </ScrollView>
+
+    <Button
+        android:id="@+id/loadfile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="contrast"
-        android:textSize="50sp"/>
-</LinearLayout>
+        android:layout_marginStart="4dp"
+android:layout_marginTop="4dp"
+        android:text="读取"
+        android:textSize="20dp"
+        app:layout_constraintStart_toEndOf="@+id/spinner"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/save"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="保存"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:id="@+id/video_view"
+        android:layout_width="244dp"
+        android:layout_height="39dp"
+
+        android:layout_marginTop="8dp"
+        app:controller_layout_id="@layout/custom_playback_control"
+        app:layout_constraintStart_toEndOf="@+id/loadfile"
+        app:layout_constraintTop_toTopOf="parent"
+        app:use_controller="true" />
+
+
 </android.support.constraint.ConstraintLayout>

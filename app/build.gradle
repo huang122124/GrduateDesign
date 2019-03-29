@@ -9,6 +9,11 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+// Specifies the ABI configurations of your native
+        // libraries Gradle should build and package with your APK.
+        ndk {
+            abiFilters "armeabi", "armeabi-v7a", "x86", "mips"
+        }
     }
     buildTypes {
         release {
@@ -21,6 +26,10 @@ android {
             jniLibs.srcDirs=['libs']
         }
     }
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 }
 
 dependencies {
@@ -31,6 +40,10 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation files('libs/Msc.jar')
-    implementation files('libs/Sunflower.jar');
+    implementation files('libs/Sunflower.jar')
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.3'
     implementation 'org.litepal.android:java:3.0.0'
+    implementation 'com.github.a237821375:LtEditSpinner:v1.1'
+    implementation files('libs/tbs_sdk_thirdapp_v3.2.0.1104_43200_sharewithdownload_withfilereader_withoutGame_obfs_20170609_115346.jar')
+    implementation 'com.lzy.net:okgo:3.0.4'
 }

@@ -1,4 +1,4 @@
-package com.example.com.grduatedesign;
+package com.example.com.grduatedesign.Activity;
 
 import android.content.Context;
 import android.os.Bundle;

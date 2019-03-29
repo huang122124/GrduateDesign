@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.example.com.grduatedesign.Entity.Statics;
 import com.example.com.grduatedesign.R;
+import com.example.com.grduatedesign.Utils.ByteTransaction;
 import com.example.com.grduatedesign.Utils.L;
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.IdentityListener;
@@ -30,6 +31,10 @@ import com.iflytek.cloud.util.VerifierUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 public class VocalIdentifyActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -93,6 +98,7 @@ public class VocalIdentifyActivity extends AppCompatActivity implements View.OnC
             dismissProDialog();
             mIsWorking = false;
             showTip(error.getPlainDescription(true));
+            L.e(error.getPlainDescription(true));
         }
 
     };
@@ -126,6 +132,7 @@ public class VocalIdentifyActivity extends AppCompatActivity implements View.OnC
                         }
                     }
                     break;
+
 
                 case MotionEvent.ACTION_UP:
                     v.performClick();
@@ -275,7 +282,7 @@ public class VocalIdentifyActivity extends AppCompatActivity implements View.OnC
         // 设置组ID
         mIdVerifier.setParameter("group_id", mGroupId);
         mIdVerifier.setParameter(SpeechConstant.AUDIO_FORMAT,"wav");
-        mIdVerifier.setParameter(SpeechConstant.ASR_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/msc/ivp.wav");
+    //    mIdVerifier.setParameter(SpeechConstant.ASR_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/msc/ivp.wav");
         // 设置监听器，开始会话
         mIdVerifier.startWorking(mSearchListener);
     }

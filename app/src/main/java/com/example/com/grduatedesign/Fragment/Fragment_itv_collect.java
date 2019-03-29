@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
@@ -32,6 +33,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.DialogFragment;
+import android.text.TextUtils;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -43,26 +45,35 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.com.grduatedesign.Entity.Statics;
+import com.example.com.grduatedesign.Activity.MainActivity;
 import com.example.com.grduatedesign.Model.Imformation;
 import com.example.com.grduatedesign.R;
 import com.example.com.grduatedesign.Utils.AutoFitTextureView;
 import com.example.com.grduatedesign.Utils.IatSettings;
 import com.example.com.grduatedesign.Utils.JsonParser;
 import com.example.com.grduatedesign.Utils.L;
+import com.example.com.grduatedesign.Utils.WavMerge;
 import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.IdentityListener;
+import com.iflytek.cloud.IdentityResult;
+import com.iflytek.cloud.IdentityVerifier;
 import com.iflytek.cloud.InitListener;
 import com.iflytek.cloud.RecognizerListener;
 import com.iflytek.cloud.RecognizerResult;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
+import com.iflytek.cloud.SpeechEvent;
 import com.iflytek.cloud.SpeechRecognizer;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -72,9 +83,14 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class Fragment_itv_collect extends Fragment implements View.OnClickListener {
-    private TextView tv_speak;
+    private TextView tv_ask,itv_show,tv_im;
     private Toast mToast;
     private List<Imformation> list = new ArrayList<>();
+    private List<File>inputs;
+    private File interviewRecord;
+    private String  itv_person,itv_name,date;
+    // 身份鉴别对象
+    private IdentityVerifier mIdVerifier;
     //语音听写对象
     private SpeechRecognizer mSpeechRecognizer;
     private SharedPreferences mSharedPreferences;
@@ -221,7 +237,8 @@ public class Fragment_itv_collect extends Fragment implements View.OnClickListen
 
     private Button ask;
     private Button stop;
-    private Button record;
+    private Button clear,record;
+    private Bundle bundle;
 
     @Nullable
     @Override
@@ -271,23 +288,64 @@ private CameraCaptureSession getCameraSession(boolean isBack){
     }
 }
     private void initView(View view) {
+
         mToast = Toast.makeText(getActivity(), "", Toast.LENGTH_SHORT);
-        tv_speak = view.findViewById(R.id.tv_speak);
+        tv_ask = view.findViewById(R.id.tv_ask);
+        tv_im=view.findViewById(R.id.tv_im);
+       itv_show=view.findViewById(R.id.itv_show);
         ask = view.findViewById(R.id.ask);
         stop = view.findViewById(R.id.end);
         ask.setOnClickListener(this);
         stop.setOnClickListener(this);
+        clear=view.findViewById(R.id.clear);
+        clear.setOnClickListener(this);
         record=view.findViewById(R.id.front_record);
         record.setOnClickListener(this);
+        view.findViewById(R.id.answer).setOnClickListener(this);
         view.findViewById(R.id.front_cam).setOnClickListener(this);
         view.findViewById(R.id.back_cam).setOnClickListener(this);
         mSharedPreferences = getActivity().getSharedPreferences(IatSettings.PREFER_NAME,
                 Activity.MODE_PRIVATE);
         texture_front = view.findViewById(R.id.texture_front);
         texture_back=view.findViewById(R.id.texture_back);
-        //mFile = new File(getActivity().getExternalFilesDir(null), "interview.mp4");    //事后根据访谈设置命名
+
+        bundle=getArguments();   //获得访谈设置
+        checkBundle(bundle);
+
+        mIdVerifier=IdentityVerifier.createVerifier(getActivity(), new InitListener() {
+            @Override
+            public void onInit(int errorCode) {
+                if (ErrorCode.SUCCESS == errorCode) {
+                    L.d("IdVerifier引擎初始化成功");
+                } else {
+                   L.d("引擎初始化失败，错误码：" + errorCode);
+                }
+            }
+        });
     }
 
+    private void checkBundle(Bundle bundle){
+        if (bundle!=null) {
+            itv_person = getArguments().getString("itv_person");
+            itv_name = getArguments().getString("itv_name");
+            date = getArguments().getString("date");
+            tv_im.setText("访谈对象："+itv_person+"       "+"访谈命名："+itv_name+"     "+"访谈日期："+date);
+            L.d(itv_person + "" + itv_name + " " + date);
+        }else {
+            final MainActivity activity= (MainActivity) getActivity();
+            AlertDialog.Builder dialog=new AlertDialog.Builder(getActivity());
+            dialog.setTitle("提示")
+                    .setMessage("请先设置访谈信息！")
+                    .setPositiveButton("好", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            activity.changeTab(0);
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+        }
+    }
     /**
      * 参数设置
      * @return
@@ -329,7 +387,7 @@ private CameraCaptureSession getCameraSession(boolean isBack){
         mSpeechRecognizer.setParameter(SpeechConstant.VAD_BOS, mSharedPreferences.getString("iat_vadbos_preference", "4000"));
 
         // 设置语音后端点:后端点静音检测时间，即用户停止说话多长时间内即认为不再输入， 自动停止录音
-        mSpeechRecognizer.setParameter(SpeechConstant.VAD_EOS, mSharedPreferences.getString("iat_vadeos_preference", "1500"));
+        mSpeechRecognizer.setParameter(SpeechConstant.VAD_EOS, mSharedPreferences.getString("iat_vadeos_preference", "2000"));
 
         // 设置标点符号,设置为"0"返回结果无标点,设置为"1"返回结果有标点
         mSpeechRecognizer.setParameter(SpeechConstant.ASR_PTT, mSharedPreferences.getString("iat_punc_preference", "1"));
@@ -337,16 +395,33 @@ private CameraCaptureSession getCameraSession(boolean isBack){
         // 设置音频保存路径，保存音频格式支持pcm、wav，设置路径为sd卡请注意WRITE_EXTERNAL_STORAGE权限
         // 注：AUDIO_FORMAT参数语记需要更新版本才能生效
         mSpeechRecognizer.setParameter(SpeechConstant.AUDIO_FORMAT, "wav");
-        mSpeechRecognizer.setParameter(SpeechConstant.ASR_AUDIO_PATH, Environment.getExternalStorageDirectory() + "/msc/iat.wav");
+        mSpeechRecognizer.setParameter(SpeechConstant.ASR_AUDIO_PATH, Environment.getExternalStorageDirectory() + "/msc/iat/"+itv_name+"/samples/"+ System.currentTimeMillis()+".wav");
     }
 
     int ret = 0;
-
+boolean isAsk;
     @Override
-    public void onClick(View view) {
+    public void onClick(final View view) {
+        checkBundle(bundle);
         switch (view.getId()) {
             case R.id.ask:
-                tv_speak.setText("");
+                isAsk=true;
+                tv_ask.setText("");
+                mIatResults.clear();
+                // 设置参数
+                setParamRecognizer();
+                vocalSearch();
+                mSpeechRecognizer.startListening(listener);
+                if (ret != ErrorCode.SUCCESS) {
+                    showTip("听写失败,错误码：" + ret);
+                } else {
+                    showTip(getString(R.string.text_begin));
+                }
+
+                break;
+            case R.id.answer:
+                isAsk=false;
+                tv_ask.setText("");
                 mIatResults.clear();
                 // 设置参数
                 setParamRecognizer();
@@ -360,6 +435,87 @@ private CameraCaptureSession getCameraSession(boolean isBack){
                 break;
             case R.id.end:
                 mSpeechRecognizer.stopListening();
+                AlertDialog.Builder confrimDialog=new AlertDialog.Builder(getActivity());
+                confrimDialog.setTitle("提示")
+                        .setMessage("是否结束本次访谈?")
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                final File[] files = new File(Environment.getExternalStorageDirectory() + "/msc/iat/"+itv_name+"/samples/").listFiles();
+                                final List<File> list;
+                                if (files == null) {
+                                    list = new ArrayList<>();
+                                } else {
+                                    list = Arrays.asList(files);
+                                    Collections.sort(list, new Comparator<File>() {
+                                        @Override
+                                        public int compare(File o1, File o2) {
+                                            if (o1.isDirectory() && o2.isFile())
+                                                return -1;
+                                            if (o1.isFile() && o2.isDirectory())
+                                                return 1;
+                                            return o1.getName().compareTo(o2.getName());
+                                        }
+                                    });
+                                }
+                                //判断是否保存
+                                final AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
+                                builder.setTitle("提示")
+                                        .setMessage("已结束,是否保存本次访谈?")
+                                        .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                try {
+                                                    if (date!=null&&itv_name!=null&&list!=null) {
+                                                        if (files!=null&&!TextUtils.isEmpty(itv_show.getText())) {
+                                                            WavMerge.mergeWav(list, new File(Environment.getExternalStorageDirectory() + "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（音）.wav"));
+                                                            FileOutputStream outputStream = new FileOutputStream(Environment.getExternalStorageDirectory() +
+                                                                    "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（文）.txt");
+                                                            outputStream.write(itv_show.getText().toString().getBytes());
+                                                            outputStream.close();
+
+                                                            showTip("已保存到" + Environment.getExternalStorageDirectory() + "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（音）.wav");
+                                                            tv_ask.setText("请按开始并说话");
+                                                            itv_show.setText("");
+                                                            bundle = null;
+                                                        }else {
+                                                            showTip("保存失败，没有访谈内容！");
+                                                        }
+                                                    }
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        })
+                                        .setNegativeButton("不保存", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                File samplefiles=new File(Environment.getExternalStorageDirectory() + "/msc/iat/"+itv_name);
+                                                deleteFile(samplefiles);
+                                                tv_ask.setText("请按开始并说话");
+                                                itv_show.setText("");
+                                                bundle = null;
+                                            }
+                                        })
+                                        .setCancelable(false);
+                                builder.create().show();
+                            }
+                        })
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        })
+                        .show();
+
+
+                break;
+            case R.id.clear:
+                File samplefiles=new File(Environment.getExternalStorageDirectory() + "/msc/iat/"+itv_name);
+                deleteFile(samplefiles);
+                tv_ask.setText("请按开始并说话");
+                itv_show.setText("");
                 break;
             case R.id.front_record:
                 //这里怎么写？
@@ -387,12 +543,94 @@ private CameraCaptureSession getCameraSession(boolean isBack){
         }
     }
 
+    //flie：要删除的文件夹的所在位置
+    private void deleteFile(File file) {
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                File f = files[i];
+                deleteFile(f);
+            }
+           file.delete();//如要保留文件夹，只删除文件，请注释这行
+        } else if (file.exists()) {
+            file.delete();
+        }
+    }
 
+    /**
+     * 声纹鉴别监听器
+     */
+    private IdentityListener mSearchListener = new IdentityListener() {
+
+        @Override
+        public void onResult(IdentityResult result, boolean islast) {
+            handleResult(result);
+        }
+
+        @Override
+        public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+            if (SpeechEvent.EVENT_VOLUME == eventType) {
+                showTip("音量：" + arg1);
+            } else if (SpeechEvent.EVENT_VAD_EOS == eventType) {
+                showTip("录音结束");
+            }
+        }
+
+        @Override
+        public void onError(SpeechError error) {
+            showTip(error.getPlainDescription(true));
+        }
+
+    };
+
+    private void vocalSearch() {
+        mIdVerifier.setParameter(SpeechConstant.PARAMS, null);
+        // 设置会话场景
+        mIdVerifier.setParameter(SpeechConstant.MFV_SCENES, "ivp");
+        // 设置会话类型
+            mIdVerifier.setParameter(SpeechConstant.SAMPLE_RATE,"8000");
+        mIdVerifier.setParameter(SpeechConstant.MFV_SST, "identify");
+        // 设置组ID
+        mIdVerifier.setParameter("group_id", Statics.GROUPID);
+        mIdVerifier.setParameter(SpeechConstant.AUDIO_FORMAT,"wav");
+        //mIdVerifier.setParameter(SpeechConstant.ASR_AUDIO_PATH, Environment.getExternalStorageDirectory()+"/msc/ivp.wav");
+        // 设置监听器，开始会话
+        mIdVerifier.startWorking(mSearchListener);
+    }
+    private void handleResult(IdentityResult result) {
+        if (null == result) {
+            return;
+        }
+        try {
+            String resultStr = result.getResultString();
+            L.d(resultStr);
+            JSONObject resultJson = new JSONObject(resultStr);
+            if(ErrorCode.SUCCESS == resultJson.getInt("ret"))
+            {
+                // 保存到历史记录中
+				/*DemoApp.getmHisList().addHisItem(resultJson.getString("group_id"),
+						resultJson.getString("group_name") + "(" + resultJson.getString("group_id") + ")");
+				FuncUtil.saveObject(VocalIdentifyActivity.this, DemoApp.getmHisList(), DemoApp.HIS_FILE_NAME);*/
+
+                // 跳转到结果展示页面
+//                Intent intent = new Intent(getContext(), ResultIdentifyActivity.class);
+//                intent.putExtra("result", resultStr);
+//                startActivity(intent);
+
+            }
+            else {
+                showTip("鉴别失败！");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
     private RecognizerListener listener = new RecognizerListener() {
+
         @Override
         public void onVolumeChanged(int i, byte[] bytes) {
 
-        }
+            }
 
         @Override
         public void onBeginOfSpeech() {
@@ -402,13 +640,37 @@ private CameraCaptureSession getCameraSession(boolean isBack){
         @Override
         public void onEndOfSpeech() {
             showTip("结束说话");
+            tv_ask.setText("请按开始并说话");
         }
 
         @Override
-        public void onResult(RecognizerResult recognizerResult, boolean b) {
-            String resultText = JsonParser.parseIatResult(recognizerResult.getResultString());
-            L.d(resultText);
-            printResult(recognizerResult);
+        public void onResult(RecognizerResult results, boolean b) {
+            String text = JsonParser.parseIatResult(results.getResultString());
+            String sn = null;
+            // 读取json结果中的sn字段
+            try {
+                JSONObject resultJson = new JSONObject(results.getResultString());
+                sn = resultJson.optString("sn");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            mIatResults.put(sn, text);
+
+            StringBuffer resultBuffer=new StringBuffer();
+            if (isAsk) {
+                resultBuffer.append("问：");
+            }else {
+                resultBuffer.append(itv_person+"：");
+            }
+            //加入说话人身份
+            for (String key : mIatResults.keySet()) {
+                resultBuffer.append(mIatResults.get(key));
+            }
+            tv_ask.setTextColor(Color.RED);
+            tv_ask.setText(resultBuffer.toString());
+            if (b) {
+                itv_show.append(tv_ask.getText() + "\n");
+            }
         }
 
         @Override
@@ -423,25 +685,7 @@ private CameraCaptureSession getCameraSession(boolean isBack){
     };
 
     private void printResult(RecognizerResult results) {
-        String text = JsonParser.parseIatResult(results.getResultString());
 
-        String sn = null;
-        // 读取json结果中的sn字段
-        try {
-            JSONObject resultJson = new JSONObject(results.getResultString());
-            sn = resultJson.optString("sn");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        mIatResults.put(sn, text);
-
-        StringBuffer resultBuffer = new StringBuffer();
-        //加入说话人身份
-        for (String key : mIatResults.keySet()) {
-            resultBuffer.append(mIatResults.get(key));
-        }
-        tv_speak.setText(resultBuffer.toString());
     }
 
 //-----------------------------------------------------以下是录像部分-------------------------------------------------------------------------------------------------------
@@ -661,7 +905,6 @@ private CameraCaptureSession getCameraSession(boolean isBack){
         }
         CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
         try {
-            L.d("tryAcquire");
             if (!getSemaphore(isBack).tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
