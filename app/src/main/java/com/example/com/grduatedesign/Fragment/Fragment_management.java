@@ -324,7 +324,7 @@ public class Fragment_management extends Fragment implements TbsReaderView.Reade
                 break;
             case R.id.refresh_templet:
 
-                break;
+  
         }
     }
 
