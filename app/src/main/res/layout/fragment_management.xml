@@ -5,23 +5,87 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <RelativeLayout
-        android:id="@+id/tbsView"
-        android:layout_width="match_parent"
+    <WebView
+        android:id="@+id/man_WebView"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.9"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></RelativeLayout>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/load_templet"
+        tools:layout_editor_absoluteY="48dp"></WebView>
+
+    <cn.lognteng.editspinner.lteditspinner.LTEditSpinner
+        android:id="@+id/man_spinner"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:background="#FFF5EE"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintStart_toEndOf="@+id/textView"
+        app:layout_constraintTop_toTopOf="@+id/textView"
+        app:layout_constraintWidth_percent="0.3"></cn.lognteng.editspinner.lteditspinner.LTEditSpinner>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="95dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="模板名称"
+        android:textSize="23sp"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.13"></TextView>
 
     <Button
-        android:id="@+id/open_wps"
+        android:id="@+id/new_templet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
-        app:layout_constraintStart_toStartOf="@+id/tbsView"
-        app:layout_constraintTop_toTopOf="@+id/tbsView" />
+        android:text="新建"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/edit_templet"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/load_templet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="确定"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/man_spinner"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/edit_templet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="编辑"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/load_templet"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:background="@drawable/refresh"
+        android:id="@+id/refresh_templet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="刷新"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@id/delete_templet"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/delete_templet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="删除"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/new_templet"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </android.support.constraint.ConstraintLayout>

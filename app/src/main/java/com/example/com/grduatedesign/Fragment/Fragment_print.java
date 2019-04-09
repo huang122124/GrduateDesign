@@ -1,7 +1,5 @@
 package com.example.com.grduatedesign.Fragment;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,13 +7,12 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import com.tencent.smtt.export.external.interfaces.WebResourceRequest;
+
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
 import com.example.com.grduatedesign.Entity.Statics;
 import com.example.com.grduatedesign.R;
-import com.example.com.grduatedesign.Utils.L;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,10 +22,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import cn.lognteng.editspinner.lteditspinner.LTEditSpinner;
-
-import static com.iflytek.sunflower.config.a.i;
-import static com.iflytek.sunflower.config.a.v;
-import static com.iflytek.sunflower.config.a.w;
 
 public class Fragment_print extends Fragment {
     private LTEditSpinner<String>ltEditSpinner;
@@ -51,7 +44,7 @@ public class Fragment_print extends Fragment {
 
     private void initView(View view) {
         ltEditSpinner=view.findViewById(R.id.print_spinner);
-        String pathname = Statics.PATH_NAME ;
+        String pathname = Statics.PATH_INTERVIEW;
         File file = new File(pathname);
         File[] files = file.listFiles();
 

@@ -2,7 +2,6 @@ package com.example.com.grduatedesign.Fragment;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -80,7 +79,7 @@ private Button play_pause;
     private void initView(View view) {
         ltEditSpinner = view.findViewById(R.id.ltd_spinner);
 
-        String pathname =Statics.PATH_NAME ;
+        String pathname =Statics.PATH_INTERVIEW;
         File file = new File(pathname);
         File[] files = file.listFiles();
 
@@ -156,7 +155,7 @@ private Button play_pause;
             case R.id.query_loadfile:
                 itv_name=ltEditSpinner.getValue();
                 if (!itv_name.equals("")) {
-                    String path = Statics.PATH_NAME + "/" + itv_name;
+                    String path = Statics.PATH_INTERVIEW + "/" + itv_name;
                     file = new File(path);
                     List<File> txtlist = TextSearchFile.searchFiles(file, ".txt");
                     for (int i = 0; i < txtlist.size(); i++) {
