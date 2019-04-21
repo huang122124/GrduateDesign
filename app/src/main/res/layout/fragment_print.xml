@@ -7,20 +7,18 @@
 
 
     <Button
-        android:id="@+id/print_loadfile"
+        android:id="@+id/print_save"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="读取"
+        android:text="保存"
         android:textSize="20dp"
-        app:layout_constraintStart_toEndOf="@+id/print_spinner"
+        app:layout_constraintStart_toEndOf="@+id/print_start"
         app:layout_constraintTop_toTopOf="parent" />
 
     <cn.lognteng.editspinner.lteditspinner.LTEditSpinner
         android:id="@+id/print_spinner"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginEnd="415dp"
         android:background="#FFF5EE"
         app:layout_constraintHeight_percent="0.1"
         app:layout_constraintStart_toEndOf="@+id/textView"
@@ -29,7 +27,7 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="95dp"
+        android:layout_width="94dp"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
@@ -43,23 +41,34 @@
         app:layout_constraintWidth_percent="0.13"></TextView>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/print_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Button"
-        app:layout_constraintStart_toEndOf="@+id/print_loadfile"
+        android:layout_marginStart="8dp"
+        android:text="开始排版"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/print_spinner"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.tencent.smtt.sdk.WebView
+    <WebView
         android:id="@+id/webView"
         android:layout_width="715dp"
         android:layout_height="343dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="56dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/print_loadfile" />
+        app:layout_constraintTop_toBottomOf="@+id/print_spinner" />
+
+    <Button
+        android:id="@+id/btn_print"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="打印"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/print_save"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

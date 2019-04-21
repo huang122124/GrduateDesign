@@ -57,12 +57,14 @@ public class New_templet_dialog extends Dialog implements View.OnClickListener {
                     doc_name=et_templet.getText().toString() + ".doc";
                     makeFilePath(path, doc_name);
                     try {
+
                         //写字符串进word
                         InputStream is = getContext().getAssets().open("empty_doc.doc");
+                        //InputStream is=new FileInputStream(Statics.PATH_TEMPLET+"模板1.doc");
                         HWPFDocument doc = new HWPFDocument(is);
                         //获取Range
                         Range range = doc.getRange();
-                       range.insertAfter("666");
+                       range.insertAfter("insertAfter666666666666");
                         //写到原文件中
                         //OutputStream os = new FileOutputStream(源文件path);
                         //写到另一个文件中

@@ -7,5 +7,6 @@ public class Statics {
     public static String PATH_INTERVIEW = Environment.getExternalStorageDirectory() + "/msc/iat/";
     public static String PATH_TEMPLET= Environment.getExternalStorageDirectory() + "/msc/templets/";
     public static String PATH_HTML= Environment.getExternalStorageDirectory() + "/msc/html/";
+    public static String PATH_CONVERT= Environment.getExternalStorageDirectory() + "/msc/convert/";
 
 }

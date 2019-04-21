@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:text="新建"
         android:textSize="20sp"
-        app:layout_constraintStart_toEndOf="@+id/edit_templet"
+        app:layout_constraintStart_toEndOf="@+id/delete_templet"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
@@ -75,7 +75,7 @@
         android:layout_height="wrap_content"
         android:text="刷新"
         android:textSize="20sp"
-        app:layout_constraintStart_toEndOf="@id/delete_templet"
+        app:layout_constraintStart_toEndOf="@id/new_templet"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
@@ -84,7 +84,7 @@
         android:layout_height="wrap_content"
         android:text="删除"
         android:textSize="20sp"
-        app:layout_constraintStart_toEndOf="@+id/new_templet"
+        app:layout_constraintStart_toEndOf="@+id/edit_templet"
         app:layout_constraintTop_toTopOf="parent" />
 
 

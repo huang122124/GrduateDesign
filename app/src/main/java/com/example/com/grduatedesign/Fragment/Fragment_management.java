@@ -29,11 +29,10 @@ import com.example.com.grduatedesign.Entity.Statics;
 import com.example.com.grduatedesign.Model.MapTable;
 import com.example.com.grduatedesign.Model.WpsModel;
 import com.example.com.grduatedesign.R;
+import com.example.com.grduatedesign.Utils.Convert;
 import com.example.com.grduatedesign.Utils.L;
 import com.example.com.grduatedesign.Utils.TextSearchFile;
-import com.tencent.smtt.sdk.QbSdk;
-import com.tencent.smtt.sdk.TbsReaderView;
-import com.tencent.smtt.sdk.ValueCallback;
+
 
 
 import org.apache.poi.hwpf.HWPFDocument;
@@ -71,10 +70,10 @@ import javax.xml.transform.stream.StreamResult;
 
 import cn.lognteng.editspinner.lteditspinner.LTEditSpinner;
 
-public class Fragment_management extends Fragment implements TbsReaderView.ReaderCallback, View.OnClickListener {
+public class Fragment_management extends Fragment implements View.OnClickListener {
     private WebView webView;
     private String docUrl=null,htmlfile;
-    private Button open_wps;
+    private Button edit,delete;
     private New_templet_dialog dialog;
     private MyReceiver receiver;
     private IntentFilter filter;
@@ -97,10 +96,11 @@ public class Fragment_management extends Fragment implements TbsReaderView.Reade
         currentTemplet=null;
         initSpinner();
         view.findViewById(R.id.load_templet).setOnClickListener(this);
-        view.findViewById(R.id.edit_templet).setOnClickListener(this);
+        (edit=view.findViewById(R.id.edit_templet)).setOnClickListener(this);
+        edit.setVisibility(View.GONE);
         view.findViewById(R.id.new_templet).setOnClickListener(this);
-        view.findViewById(R.id.delete_templet);
-        view.setOnClickListener(this);
+        (delete= view.findViewById(R.id.delete_templet)).setOnClickListener(this);
+        delete.setVisibility(View.GONE);
         view.findViewById(R.id.refresh_templet).setOnClickListener(this);
         //注册本地广播
         receiver=new MyReceiver();
@@ -112,6 +112,7 @@ public class Fragment_management extends Fragment implements TbsReaderView.Reade
     }
 
     private void initSpinner() {
+        spinner.setEditHint("请输入模板名称");
         String pathname =Statics.PATH_TEMPLET ;
         File file = new File(pathname);
         File[] files = file.listFiles();
@@ -141,6 +142,7 @@ public class Fragment_management extends Fragment implements TbsReaderView.Reade
             public void onItemClick(Object o) {
             }
         });
+
     }
 
     private void checkPermission() {
@@ -236,13 +238,7 @@ public class Fragment_management extends Fragment implements TbsReaderView.Reade
             e.printStackTrace();
         }
         params.put("menuData",Object.toString());
-        QbSdk.getMiniQBVersion(context);
-        int ret = QbSdk.openFileReader(context, pathName, params, new ValueCallback<String>() {
-            @Override
-            public void onReceiveValue(String s) {
 
-            }
-        });
 
     }
 
@@ -265,70 +261,90 @@ public class Fragment_management extends Fragment implements TbsReaderView.Reade
         super.onDestroy();
     }
 
-    @Override
-    public void onCallBackAction(Integer integer, Object o, Object o1) {
 
-    }
-
-
+boolean loaded=false;
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.load_templet:
-                String doc_name=spinner.getValue();
-                if (!TextUtils.isEmpty(doc_name)) {
-                    docUrl = Statics.PATH_TEMPLET + doc_name;
-                    List<File> list = TextSearchFile.searchFiles(new File(Statics.PATH_TEMPLET), doc_name);
-                    if (list.size() == 0) {
-                        Toast.makeText(getActivity(), "文件不存在", Toast.LENGTH_SHORT).show();
-                    } else {
-                        String s = doc_name.substring(0, doc_name.indexOf("."));
-                        htmlfile = Statics.PATH_HTML + s + ".html";
-                        try {
-                            convert2Html(docUrl, doc_name, htmlfile);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+        if (dirname.size()==0){
+            Toast.makeText(getActivity(), "当前模板数量为0，请新建模板", Toast.LENGTH_SHORT).show();
+        }
+                switch (v.getId()) {
+                    case R.id.load_templet:
+                    String doc_name = spinner.getValue();
+                    if (!TextUtils.isEmpty(doc_name)) {
+                        docUrl = Statics.PATH_TEMPLET + doc_name;
+                        File file=new File(docUrl);
+                        if (!file.exists()) {
+                            Toast.makeText(getActivity(), "文件不存在", Toast.LENGTH_SHORT).show();
+                        } else {
+                            String s = doc_name.substring(0, doc_name.indexOf("."));
+                            htmlfile = Statics.PATH_HTML + s + ".html";
+                            try {
+                                Convert.convert2Html(docUrl, doc_name, htmlfile);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            initDoc();
+                            currentTemplet = doc_name;
+                           edit.setVisibility(View.VISIBLE);
+                           delete.setVisibility(View.VISIBLE);
+
                         }
-                        initDoc();
-                        currentTemplet=doc_name;
+                    } else {
+                        Toast.makeText(getActivity(), "请输入模板名称", Toast.LENGTH_SHORT).show();
                     }
-                }else {
-                    Toast.makeText(getActivity(), "请输入模板名称", Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case  R.id.edit_templet:
-                if (currentTemplet!=null) {
-                    docUrl=Statics.PATH_TEMPLET +currentTemplet;
-                    opendocFile(getActivity(), docUrl);
-                }
-                break;
-            case R.id.new_templet:
-                //弹出提示框
-                dialog=new New_templet_dialog(getActivity(),R.style.New_templet_dialog);
-                dialog.show();
+                        break;
+
+                    case R.id.edit_templet:
+                        docUrl = Statics.PATH_TEMPLET + currentTemplet;
+                        opendocFile(getActivity(), docUrl);
+                        break;
+
+                    case R.id.delete_templet:
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                        builder.setTitle("提示")
+                                .setMessage("是否删除选中模版?")
+                                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        deleteTemplet(currentTemplet);
+                                    }
+                                })
+                                .setNegativeButton("取消", null)
+                                .create()
+                                .show();
+                        break;
+                    case  R.id.new_templet:
+                        //弹出提示框
+                        dialog = new New_templet_dialog(getActivity(), R.style.New_templet_dialog);
+                        dialog.show();
 //                if (openFile()){
 //                    L.d("新建成功");
 //                }
-                break;
-            case R.id.delete_templet:
-                AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
-                builder.setTitle("提示")
-                        .setMessage("是否删除选中模版?")
-                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                deleteTemplet(currentTemplet);
-                            }
-                        })
-                        .setNegativeButton("取消",null);
-                break;
-            case R.id.refresh_templet:
+                    case R.id.refresh_templet:
+                        break;
+                }
 
-  
-        }
+
+
+
+
+
     }
 
     private void deleteTemplet(String currentTemplet) {
+        File docfile=new File(Statics.PATH_TEMPLET+currentTemplet);
+        String s = currentTemplet.substring(0, currentTemplet.indexOf("."));
+       String htmlpath = Statics.PATH_HTML + s + ".html";
+        File htmlfile=new File(htmlpath);
+        if (docfile.exists()){
+            docfile.delete();
+        }
+        if (htmlfile.exists()){
+            htmlfile.delete();
+        }
+        initSpinner();
+        webView.destroy();
 
     }
 
@@ -342,90 +358,7 @@ public class Fragment_management extends Fragment implements TbsReaderView.Reade
     }
 
 
-    /**
-     * word文档转成html格式
-     * */
-    public void convert2Html(String fileName, final String docName,String outPutFile) {
-        HWPFDocument wordDocument = null;
-        try {
-            wordDocument = new HWPFDocument(new FileInputStream(fileName));
-            WordToHtmlConverter wordToHtmlConverter = new WordToHtmlConverter(
-                    DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument());
-            //设置图片路径
-            wordToHtmlConverter.setPicturesManager(new PicturesManager() {
-                public String savePicture(byte[] content,
-                                          PictureType pictureType, String suggestedName,
-                                          float widthInches, float heightInches) {
-                    String name = docName.substring(0, docName.indexOf("."));
-                    return name + "/" + suggestedName;
-                }
-            });
-            //保存图片
-            List<Picture> pics=wordDocument.getPicturesTable().getAllPictures();
-            if(pics!=null){
-                for(int i=0;i<pics.size();i++){
-                    Picture pic = pics.get(i);
-                   L.d( pic.suggestFullFileName());
-                    try {
-                        String name = docName.substring(0,docName.indexOf("."));
-                        String file = Statics.PATH_HTML+ name + "/"
-                                + pic.suggestFullFileName();
-                        File file1=new File(file);
-                        if (!file1.exists()) {
-                            file1.mkdir();
-                        }
-                        pic.writeImageContent(new FileOutputStream(file));
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            wordToHtmlConverter.processDocument(wordDocument);
-            Document htmlDocument = wordToHtmlConverter.getDocument();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            DOMSource domSource = new DOMSource(htmlDocument);
-            StreamResult streamResult = new StreamResult(out);
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer serializer = tf.newTransformer();
-            serializer.setOutputProperty(OutputKeys.ENCODING, "utf-8");
-            serializer.setOutputProperty(OutputKeys.INDENT, "yes");
-            serializer.setOutputProperty(OutputKeys.METHOD, "html");
-            serializer.transform(domSource, streamResult);
-            out.close();
-            //保存html文件
-            writeFile(new String(out.toByteArray()), outPutFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    /**
-     * 将html文件保存到sd卡
-     * */
-    public void writeFile(String content, String path) {
-        FileOutputStream fos = null;
-        BufferedWriter bw = null;
-        try {
-            File file = new File(path);
-            if(!file.exists()){
-                file.createNewFile();
-            }
-            fos = new FileOutputStream(file);
-            bw = new BufferedWriter(new OutputStreamWriter(fos,"utf-8"));
-            bw.write(content);
-        } catch (FileNotFoundException fnfe) {
-            fnfe.printStackTrace();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        } finally {
-            try {
-                if (bw != null)
-                    bw.close();
-                if (fos != null)
-                    fos.close();
-            } catch (IOException ie) {
-            }
-        }
-    }
+
 
 
 

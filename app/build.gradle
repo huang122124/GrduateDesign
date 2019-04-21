@@ -45,7 +45,10 @@ dependencies {
     implementation 'org.litepal.android:java:3.0.0'
     implementation 'com.github.a237821375:LtEditSpinner:v1.1'
     implementation 'com.lzy.net:okgo:3.0.4'
-    implementation files('libs/tbs_sdk_thirdapp_v3.2.0.1104_43200_sharewithdownload_withfilereader_withoutGame_obfs_20170609_115346.jar')
-    implementation 'org.apache.poi:poi-scratchpad:4.0.1'
-    implementation 'org.apache.poi:poi:4.0.1'
+    implementation 'org.apache.poi:poi-scratchpad:4.1.0'
+    implementation 'org.apache.poi:poi:4.1.0'
+    implementation 'org.apache.poi:poi-ooxml:4.1.0'
+    implementation group: 'org.freemarker', name: 'freemarker', version: '2.3.28'
+
+
 }
