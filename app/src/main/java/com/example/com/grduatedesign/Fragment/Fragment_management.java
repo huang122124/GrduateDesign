@@ -31,28 +31,12 @@ import com.example.com.grduatedesign.Model.WpsModel;
 import com.example.com.grduatedesign.R;
 import com.example.com.grduatedesign.Utils.Convert;
 import com.example.com.grduatedesign.Utils.L;
-import com.example.com.grduatedesign.Utils.TextSearchFile;
 
-
-
-import org.apache.poi.hwpf.HWPFDocument;
-import org.apache.poi.hwpf.converter.PicturesManager;
-import org.apache.poi.hwpf.converter.WordToHtmlConverter;
-import org.apache.poi.hwpf.usermodel.PictureType;
-import org.apache.poi.hwpf.usermodel.Picture;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Document;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,18 +45,11 @@ import java.util.HashMap;
 import java.util.List;
 
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import cn.lognteng.editspinner.lteditspinner.LTEditSpinner;
 
 public class Fragment_management extends Fragment implements View.OnClickListener {
     private WebView webView;
-    private String docUrl=null,htmlfile;
+    private String templetUrl =null,htmlfile;
     private Button edit,delete;
     private New_templet_dialog dialog;
     private MyReceiver receiver;
@@ -270,22 +247,22 @@ boolean loaded=false;
         }
                 switch (v.getId()) {
                     case R.id.load_templet:
-                    String doc_name = spinner.getValue();
-                    if (!TextUtils.isEmpty(doc_name)) {
-                        docUrl = Statics.PATH_TEMPLET + doc_name;
-                        File file=new File(docUrl);
+                    String templet_name = spinner.getValue();
+                    if (!TextUtils.isEmpty(templet_name)) {
+                        templetUrl = Statics.PATH_TEMPLET + templet_name;
+                        File file=new File(templetUrl);
                         if (!file.exists()) {
                             Toast.makeText(getActivity(), "文件不存在", Toast.LENGTH_SHORT).show();
                         } else {
-                            String s = doc_name.substring(0, doc_name.indexOf("."));
-                            htmlfile = Statics.PATH_HTML + s + ".html";
+                            String s = templet_name.substring(0, templet_name.indexOf("."));
+                            htmlfile = Statics.PATH_HTML + s + ".doc";
                             try {
-                                Convert.convert2Html(docUrl, doc_name, htmlfile);
+                                Convert.convert2Html(templetUrl, templet_name, htmlfile);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            initDoc();
-                            currentTemplet = doc_name;
+                           // initDoc();
+                            currentTemplet = templet_name;
                            edit.setVisibility(View.VISIBLE);
                            delete.setVisibility(View.VISIBLE);
 
@@ -296,8 +273,8 @@ boolean loaded=false;
                         break;
 
                     case R.id.edit_templet:
-                        docUrl = Statics.PATH_TEMPLET + currentTemplet;
-                        opendocFile(getActivity(), docUrl);
+                        templetUrl = Statics.PATH_TEMPLET + currentTemplet;
+                        opendocFile(getActivity(), templetUrl);
                         break;
 
                     case R.id.delete_templet:

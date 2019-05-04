@@ -8,5 +8,7 @@ public class Statics {
     public static String PATH_TEMPLET= Environment.getExternalStorageDirectory() + "/msc/templets/";
     public static String PATH_HTML= Environment.getExternalStorageDirectory() + "/msc/html/";
     public static String PATH_CONVERT= Environment.getExternalStorageDirectory() + "/msc/convert/";
+    public static String PATH_TbsReaderTemp= Environment.getExternalStorageDirectory() + "/msc/TbsReaderTemp/";
+
 
 }
