@@ -214,7 +214,7 @@ public class Fragment_itv_collect extends Fragment implements View.OnClickListen
     /**
      * Whether the app is recording video now
      */
-    private boolean mIsRecordingVideo;
+    private boolean mIsRecordingVideo=false;
 
     /**
      * An additional thread for running tasks that shouldn't block the UI.
@@ -519,12 +519,8 @@ boolean isAsk;
                 break;
             case R.id.front_record:
                 //这里怎么写？
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        recordHandler.sendEmptyMessage(1);
-                    }
-                }).start();
+                recordHandler.sendEmptyMessage(1);
+
                 break;
             case  R.id.front_cam:
                 if (texture_front.isAvailable()) {
@@ -1208,7 +1204,7 @@ boolean isAsk;
                     if (mIsRecordingVideo) {
                     stopRecordingVideo();
                 } else {
-                    startRecordingVideo();
+                  startRecordingVideo();
                 }
                 default:
             }

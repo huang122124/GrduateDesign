@@ -1,21 +1,31 @@
 package com.example.com.grduatedesign.Fragment;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.FileProvider;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-
+import com.example.com.grduatedesign.Adapter.DocListAdapter;
+import com.example.com.grduatedesign.Model.MapTable;
 import com.example.com.grduatedesign.Utils.Convert;
 import com.example.com.grduatedesign.Utils.L;
 import com.example.com.grduatedesign.Utils.LoadTxtFile;
@@ -47,15 +57,20 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 
+/**
+ * @author
+ */
 public class Fragment_print extends Fragment implements View.OnClickListener {
     private LTEditSpinner<String> spinner;
     private List<File> list;
     private File file;
     private Toast mToast;
     private String docUrl;
-    private RelativeLayout mRelativeLayout;
-    private WebView webView;
+    private ListView listView;
+    private View headerView;
     private List<String>dirname;
+    private DocListAdapter adapter;
+    private List<String>docList;
     private Configuration configuration;
     @Nullable
     @Override
@@ -73,7 +88,7 @@ public class Fragment_print extends Fragment implements View.OnClickListener {
         spinner =view.findViewById(R.id.print_spinner);
         String pathname = Statics.PATH_INTERVIEW;
         mToast=Toast.makeText(getActivity(),"",Toast.LENGTH_SHORT);
-        File file = new File(pathname);
+        final File file = new File(pathname);
         File[] files = file.listFiles();
 
         if (files == null) {
@@ -101,13 +116,41 @@ public class Fragment_print extends Fragment implements View.OnClickListener {
             public void onItemClick(Object o) {
             }
         });
-
-
-        webView= view.findViewById(R.id.webView);
         view.findViewById(R.id.print_start).setOnClickListener(this);
         view.findViewById(R.id.print_save).setOnClickListener(this);
         view.findViewById(R.id.btn_print).setOnClickListener(this);
+
+
+        headerView=View.inflate(getContext(),R.layout.doclistview_header,null);
+        listView=view.findViewById(R.id.docListView);
+        listView.addHeaderView(headerView);
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView absListView, int i) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView absListView, int i, int i1, int i2) {
+                headerView.setVisibility(View.VISIBLE);
+            }
+        });
+        docList=new ArrayList<>();
+       updataList(docList);
+
     }
+
+    private void initDocList(List<String> docList) {
+        docList.clear();
+        List<File>docfile=TextSearchFile.searchFiles(new File(Statics.PATH_CONVERT),".doc");
+        if (docfile.size()!=0){
+            for (int i=0;i<docfile.size();i++){
+                docList.add(docfile.get(i).getName());
+            }
+        }
+
+    }
+
     private void showTip(String s){
         mToast.setText(s);
         mToast.show();
@@ -221,10 +264,11 @@ public class Fragment_print extends Fragment implements View.OnClickListener {
                     e.printStackTrace();
                 }
             }
+
         }
     };
 
-    private void Merge(String txtPath, String templetname,String outputFile,String doc_name) throws IOException {
+    private void Merge(String txtPath, String templetname, final String outputFile, String doc_name) throws IOException {
 //       makeFilePath(Statics.PATH_CONVERT,itvname+".doc");
         List<String> txtList;
         txtList = LoadTxtFile.txtList(new File(txtPath));
@@ -259,19 +303,107 @@ public class Fragment_print extends Fragment implements View.OnClickListener {
            Writer out = new BufferedWriter(new OutputStreamWriter(fos, "utf-8"), 10240);
            try {
                t.process(dataMap, out);
+               showTip("排版成功！");
+              updataList(docList);
+
+               AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+               builder.setTitle("提示")
+                       .setMessage("排版成功！是否马上查看？")
+                       .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                           @Override
+                           public void onClick(DialogInterface dialog, int which) {
+                               opendocFile(getActivity(),outputFile);   //可调用office打开，打印
+                           }
+                       })
+                       .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                           @Override
+                           public void onClick(DialogInterface dialog, int which) {
+
+                           }
+                       })
+                       .create().show();
            } catch (TemplateException e) {
                e.printStackTrace();
            }
         //   displayFile(docFile);  //显示生成的doc文档
+//        try {
+//            //doc-->html
+//            String htmlPath=Statics.PATH_HTML+doc_name+".html";
+//            Convert.convert2Html(outputFile,doc_name,htmlPath);
+             //webView.loadUrl("file://"+htmlPath);
+//        } catch (TransformerException e) {
+//            e.printStackTrace();
+//        } catch (ParserConfigurationException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    private void updataList(final  List<String> docList) {
+        initDocList(docList);
+        if (docList.size()==0){
+            return;
+        }
+
+        adapter=new DocListAdapter(getContext(),R.layout.item_doc,docList);
+        listView.setAdapter(adapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {  //position因header会多1
+                L.d("position:"+position);
+                String docPath=Statics.PATH_CONVERT+docList.get(position-1);
+                File file1=new File(docPath);
+                if (file1.exists()){
+                    opendocFile(getActivity(),docPath);
+                }else {
+                    showTip("文件不存在");
+                }
+            }
+        });
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                String docPath=Statics.PATH_CONVERT+docList.get(position-1);
+                final File file2=new File(docPath);
+                if (file2.exists()){
+                    AlertDialog.Builder builder=new AlertDialog.Builder(getContext());
+                    builder.setTitle("提示")
+                            .setMessage("是否删除此文档？")
+                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    file2.delete();
+                                    docList.remove(position-1);
+                                    showTip("删除成功！");
+                                    adapter.notifyDataSetChanged();
+                                }
+                            })
+                            .setNegativeButton("取消",null)
+                            .create().show();
+
+                }else {
+                    showTip("文件不存在");
+                }
+                return true;
+            }
+        });
+
+    }
+
+    private void opendocFile(Context context, String path) {
         try {
-            //doc-->html
-            String htmlPath=Statics.PATH_HTML+doc_name+".html";
-            Convert.convert2Html(outputFile,doc_name,htmlPath);
-            webView.loadUrl("file://"+htmlPath);
-        } catch (TransformerException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            Intent intent = new Intent();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.putExtra("SendSaveBroad",true);
+            intent.setAction(Intent.ACTION_VIEW);
+            File file=new File(path);
+            Uri uri= FileProvider.getUriForFile(context, "com.example.com.grduatedesign.provider",file);
+            //   L.d(getActivity().getApplicationContext().getPackageName());
+            intent.setDataAndType(uri, MapTable.getMIMEType(path));
+            context.startActivity(intent);
+            Intent.createChooser(intent, "请选择对应的软件打开该附件！");
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(context, "sorry附件不能打开，请下载相关软件！", Toast.LENGTH_SHORT).show();
         }
     }
 

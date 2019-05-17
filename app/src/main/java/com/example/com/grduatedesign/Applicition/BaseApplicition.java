@@ -7,7 +7,7 @@ import android.widget.Toast;
 import com.example.com.grduatedesign.Utils.L;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechUtility;
-import com.tencent.smtt.sdk.QbSdk;
+
 
 import org.litepal.LitePal;
 import org.litepal.LitePalApplication;

@@ -50,16 +50,18 @@
         app:layout_constraintStart_toEndOf="@+id/print_spinner"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <WebView
-        android:id="@+id/webView"
-        android:layout_width="715dp"
-        android:layout_height="343dp"
+    <ListView
+        android:id="@+id/docListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.8"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/print_spinner" />
+        app:layout_constraintTop_toBottomOf="@+id/print_spinner"
+        app:layout_constraintWidth_percent="0.8"></ListView>
 
     <Button
         android:id="@+id/btn_print"
