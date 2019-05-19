@@ -132,7 +132,7 @@ public class Fragment_itv_collect extends Fragment implements View.OnClickListen
     /**
      * A reference to the opened {@link android.hardware.camera2.CameraDevice}.
      */
-    private CameraDevice mCameraDevice;
+    private CameraDevice mCameraDevice,mCameraDevice0;
 
     /**
      * A reference to the current {@link android.hardware.camera2.CameraCaptureSession} for
@@ -234,6 +234,7 @@ public class Fragment_itv_collect extends Fragment implements View.OnClickListen
     private Semaphore mCameraOpenCloseLock_back = new Semaphore(1);
     private Semaphore mCameraOpenCloseLock_front = new Semaphore(1);
 
+    private CaptureRequest.Builder mPreviewBuilder_front,mPreviewBuilder_back;
 
     private Button ask;
     private Button stop;
@@ -703,30 +704,41 @@ boolean isAsk;
     }
     mNextVideoAbsolutePath = null;
     startPreview(false);
+    startPreview(true);
 }
-    private void startRecordingVideo() {          //录front camera
-        if (null == mCameraDevice || !texture_front.isAvailable() || null == mPreviewSize) {
+    private void startRecordingVideo() {          //前后一起同时录
+        if (null == mCameraDevice||null == mCameraDevice0 ||!texture_front.isAvailable() || null == mPreviewSize) {
             return;
         }
         try {
             L.d("这里");
             closePreviewSession(false);
+            closePreviewSession(true);
             setUpMediaRecorder();
-            SurfaceTexture texture = texture_front.getSurfaceTexture();
-            assert texture != null;
-            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-            mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            SurfaceTexture texture_front = this.texture_front.getSurfaceTexture();
+            assert texture_front != null;
+            texture_front.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            SurfaceTexture texture_back = this.texture_back.getSurfaceTexture();
+            assert texture_back != null;
+            texture_back.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+
+            mPreviewBuilder_front = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            mPreviewBuilder_back = mCameraDevice0.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
             List<Surface> surfaces = new ArrayList<>();
 
             // Set up Surface for the camera preview
-            Surface previewSurface = new Surface(texture);
-            surfaces.add(previewSurface);
-            mPreviewBuilder.addTarget(previewSurface);
+            Surface previewSurface_front = new Surface(texture_front);
+            Surface previewSurface_back= new Surface(texture_back);
+            surfaces.add(previewSurface_front);
+            surfaces.add(previewSurface_back);
+            mPreviewBuilder_front.addTarget(previewSurface_front);
+            mPreviewBuilder_back.addTarget(previewSurface_back);
 
             // Set up Surface for the MediaRecorder
             Surface recorderSurface = mMediaRecorder.getSurface();
             surfaces.add(recorderSurface);
-            mPreviewBuilder.addTarget(recorderSurface);
+            mPreviewBuilder_front.addTarget(recorderSurface);
+            mPreviewBuilder_back.addTarget(recorderSurface);
 
             // Start a capture session
             // Once the session starts, we can update the UI and start recording
@@ -740,10 +752,10 @@ boolean isAsk;
                         return;
                     }
                     try {
-                        setUpCaptureRequestBuilder(mPreviewBuilder);
+                        setUpCaptureRequestBuilder(mPreviewBuilder_front);
                         HandlerThread thread = new HandlerThread("Camera_front_preview");
                         thread.start();
-                        mPreviewSession_front .setRepeatingRequest(mPreviewBuilder.build(), null, mHandler_front);
+                        mPreviewSession_front .setRepeatingRequest(mPreviewBuilder_front.build(), null, mHandler_front);
                     } catch (CameraAccessException e) {
                         e.printStackTrace();
                     }
@@ -767,6 +779,36 @@ boolean isAsk;
                     }
                 }
             },mHandler_front);
+
+            mCameraDevice0.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
+
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                    mPreviewSession_back = cameraCaptureSession;
+                    //updatePreview();
+                    if (null == mCameraDevice0) {
+                        return;
+                    }
+                    try {
+                        setUpCaptureRequestBuilder(mPreviewBuilder_back);
+                        HandlerThread thread = new HandlerThread("Camera_back_preview");
+                        thread.start();
+                        mPreviewSession_back.setRepeatingRequest(mPreviewBuilder_back.build(), null, mHandler_back);
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
+                    }
+                    // Start recording
+                    mMediaRecorder.start();
+                }
+
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                    Activity activity = getActivity();
+                    if (null != activity) {
+                        Toast.makeText(activity, "Failed", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            },mHandler_back);
         } catch (CameraAccessException | IOException e) {
             e.printStackTrace();
         }
@@ -885,7 +927,7 @@ boolean isAsk;
 
     private Integer mSensorOrientation;
     private String mNextVideoAbsolutePath;
-    private CaptureRequest.Builder mPreviewBuilder;
+
 
 
 
@@ -994,7 +1036,7 @@ boolean isAsk;
     private CameraDevice.StateCallback mStateCallback_back = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
-            mCameraDevice = cameraDevice;
+            mCameraDevice0 = cameraDevice;
             startPreview(true);
             mCameraOpenCloseLock_back.release();
             if (null != texture_back) {
@@ -1006,14 +1048,14 @@ boolean isAsk;
         public void onDisconnected(@NonNull CameraDevice cameraDevice) {
             mCameraOpenCloseLock_back.release();
             cameraDevice.close();
-            mCameraDevice = null;
+            mCameraDevice0 = null;
         }
 
         @Override
         public void onError(@NonNull CameraDevice cameraDevice, int error) {
             mCameraOpenCloseLock_back.release();
             cameraDevice.close();
-            mCameraDevice = null;
+            mCameraDevice0 = null;
             Activity activity = getActivity();
             if (null != activity) {
                 activity.finish();
@@ -1053,7 +1095,7 @@ boolean isAsk;
 
     };
     private void startPreview(final Boolean isBack) {
-            if (null == mCameraDevice || !getTexture(isBack).isAvailable() || null == mPreviewSize) {
+            if ( !getTexture(isBack).isAvailable() || null == mPreviewSize) {
                 return;
             }
             final String threadName;
@@ -1067,10 +1109,14 @@ boolean isAsk;
                 SurfaceTexture texture = getTexture(isBack).getSurfaceTexture();
                 assert texture != null;
                 texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-                mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                if (isBack) {
+                    mPreviewBuilder_back = getDevices(isBack).createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                }else {
+                    mPreviewBuilder_front = getDevices(isBack).createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                }
                 Surface previewSurface = new Surface(texture);
-                mPreviewBuilder.addTarget(previewSurface);
-                mCameraDevice.createCaptureSession(Collections.singletonList(previewSurface),
+               getBuilder(isBack).addTarget(previewSurface);
+                getDevices(isBack).createCaptureSession(Collections.singletonList(previewSurface),
                         new CameraCaptureSession.StateCallback() {
 
                             @Override
@@ -1081,17 +1127,17 @@ boolean isAsk;
                                     mPreviewSession_front=session;
                                 }
                                 //updatePreview
-                                if (null == mCameraDevice) {
+                                if (null == getDevices(isBack)) {
                                     return;
                                 }
                                 try {
-                                    setUpCaptureRequestBuilder(mPreviewBuilder);
+                                    setUpCaptureRequestBuilder(getBuilder(isBack));
                                     HandlerThread thread = new HandlerThread(threadName);
                                     thread.start();
                                     if (isBack) {
-                                        mPreviewSession_back.setRepeatingRequest(mPreviewBuilder.build(), null, mHandler_back);
+                                        mPreviewSession_back.setRepeatingRequest(mPreviewBuilder_back.build(), null, mHandler_back);
                                     }else {
-                                        mPreviewSession_front.setRepeatingRequest(mPreviewBuilder.build(), null, mHandler_front);
+                                        mPreviewSession_front.setRepeatingRequest(mPreviewBuilder_front.build(), null, mHandler_front);
                                     }
                                 } catch (CameraAccessException e) {
                                     e.printStackTrace();
@@ -1111,6 +1157,22 @@ boolean isAsk;
             }
 
     }
+
+    private CaptureRequest.Builder getBuilder(Boolean isBack) {
+            if (isBack){
+                return mPreviewBuilder_back;
+            }else {
+                return mPreviewBuilder_front;
+            }
+    }
+
+    private CameraDevice getDevices(Boolean isBack) {
+       if (isBack){
+            return mCameraDevice0;
+        }else
+            return mCameraDevice;
+    }
+
     private Handler getHandler(boolean isBack){
         if (isBack){
             return mHandler_back;
