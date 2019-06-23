@@ -28,11 +28,12 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.DialogFragment;
+import android.os.SystemClock;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.DialogFragment;
 import android.text.TextUtils;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -42,6 +43,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -85,6 +87,7 @@ import java.util.concurrent.TimeUnit;
 public class Fragment_itv_collect extends Fragment implements View.OnClickListener {
     private TextView tv_ask,itv_show,tv_im;
     private Toast mToast;
+    private Chronometer recordTime;
     private List<Imformation> list = new ArrayList<>();
     private List<File>inputs;
     private File interviewRecord;
@@ -209,7 +212,7 @@ public class Fragment_itv_collect extends Fragment implements View.OnClickListen
     /**
      * MediaRecorder
      */
-    private MediaRecorder mMediaRecorder;
+    private MediaRecorder mMediaRecorder_front,mMediaRecorder_back;
 
     /**
      * Whether the app is recording video now
@@ -293,6 +296,8 @@ private CameraCaptureSession getCameraSession(boolean isBack){
         mToast = Toast.makeText(getActivity(), "", Toast.LENGTH_SHORT);
         tv_ask = view.findViewById(R.id.tv_ask);
         tv_im=view.findViewById(R.id.tv_im);
+        recordTime=view.findViewById(R.id.recordTime);
+        recordTime.setVisibility(View.GONE);
        itv_show=view.findViewById(R.id.itv_show);
         ask = view.findViewById(R.id.ask);
         stop = view.findViewById(R.id.end);
@@ -323,6 +328,7 @@ private CameraCaptureSession getCameraSession(boolean isBack){
                 }
             }
         });
+
     }
 
     private void checkBundle(Bundle bundle){
@@ -332,6 +338,15 @@ private CameraCaptureSession getCameraSession(boolean isBack){
             date = getArguments().getString("date");
             tv_im.setText("访谈对象："+itv_person+"       "+"访谈命名："+itv_name+"     "+"访谈日期："+date);
             L.d(itv_person + "" + itv_name + " " + date);
+            if (itv_name!=null) {
+                //创建访谈文件夹
+                File file = new File(Environment.getExternalStorageDirectory() + "/msc/iat/" + itv_name);
+                if (!file.exists()) {
+                    file.mkdirs();
+                }
+            }
+            // 设置参数
+            setParamRecognizer();
         }else {
             final MainActivity activity= (MainActivity) getActivity();
             AlertDialog.Builder dialog=new AlertDialog.Builder(getActivity());
@@ -363,7 +378,9 @@ private CameraCaptureSession getCameraSession(boolean isBack){
 //        // 设置标点符号,设置为"0"返回结果无标点,设置为"1"返回结果有标点
 //        mSpeechRecognizer.setParameter(SpeechConstant.ASR_PTT, mSharedPreferences.getString("iat_punc_preference", "0"));
 
-
+if (mSpeechRecognizer==null){
+    return;
+}
 // 清空参数
         mSpeechRecognizer.setParameter(SpeechConstant.PARAMS, null);
 
@@ -409,9 +426,6 @@ boolean isAsk;
                 isAsk=true;
                 tv_ask.setText("");
                 mIatResults.clear();
-                // 设置参数
-                setParamRecognizer();
-                vocalSearch();
                 mSpeechRecognizer.startListening(listener);
                 if (ret != ErrorCode.SUCCESS) {
                     showTip("听写失败,错误码：" + ret);
@@ -435,81 +449,7 @@ boolean isAsk;
 
                 break;
             case R.id.end:
-                mSpeechRecognizer.stopListening();
-                AlertDialog.Builder confrimDialog=new AlertDialog.Builder(getActivity());
-                confrimDialog.setTitle("提示")
-                        .setMessage("是否结束本次访谈?")
-                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                final File[] files = new File(Environment.getExternalStorageDirectory() + "/msc/iat/"+itv_name+"/samples/").listFiles();
-                                final List<File> list;
-                                if (files == null) {
-                                    list = new ArrayList<>();
-                                } else {
-                                    list = Arrays.asList(files);
-                                    Collections.sort(list, new Comparator<File>() {
-                                        @Override
-                                        public int compare(File o1, File o2) {
-                                            if (o1.isDirectory() && o2.isFile())
-                                                return -1;
-                                            if (o1.isFile() && o2.isDirectory())
-                                                return 1;
-                                            return o1.getName().compareTo(o2.getName());
-                                        }
-                                    });
-                                }
-                                //判断是否保存
-                                final AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
-                                builder.setTitle("提示")
-                                        .setMessage("已结束,是否保存本次访谈?")
-                                        .setPositiveButton("确认", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                try {
-                                                    if (date!=null&&itv_name!=null&&list!=null) {
-                                                        if (files!=null&&!TextUtils.isEmpty(itv_show.getText())) {
-                                                            WavMerge.mergeWav(list, new File(Environment.getExternalStorageDirectory() + "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（音）.wav"));
-                                                            FileOutputStream outputStream = new FileOutputStream(Environment.getExternalStorageDirectory() +
-                                                                    "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（文）.txt");
-                                                            outputStream.write(itv_show.getText().toString().getBytes());
-                                                            outputStream.close();
-
-                                                            showTip("已保存到" + Environment.getExternalStorageDirectory() + "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（音）.wav");
-                                                            tv_ask.setText("请按开始并说话");
-                                                            itv_show.setText("");
-                                                            bundle = null;
-                                                        }else {
-                                                            showTip("保存失败，没有访谈内容！");
-                                                        }
-                                                    }
-                                                } catch (IOException e) {
-                                                    e.printStackTrace();
-                                                }
-                                            }
-                                        })
-                                        .setNegativeButton("不保存", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                File samplefiles=new File(Environment.getExternalStorageDirectory() + "/msc/iat/"+itv_name);
-                                                deleteFile(samplefiles);
-                                                tv_ask.setText("请按开始并说话");
-                                                itv_show.setText("");
-                                                bundle = null;
-                                            }
-                                        })
-                                        .setCancelable(false);
-                                builder.create().show();
-                            }
-                        })
-                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-
-                            }
-                        })
-                        .show();
-
+                endCollect();
 
                 break;
             case R.id.clear:
@@ -538,6 +478,87 @@ boolean isAsk;
                 }
                 break;
         }
+    }
+
+    private void endCollect() {
+        mSpeechRecognizer.stopListening();
+        AlertDialog.Builder confrimDialog=new AlertDialog.Builder(getActivity());
+        confrimDialog.setTitle("提示")
+                .setMessage("是否结束本次访谈?")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        //对访谈录音碎片排序
+                        final File[] files = new File(Environment.getExternalStorageDirectory() + "/msc/iat/"+itv_name+"/samples/").listFiles();
+                        final List<File> list;
+                        if (files == null) {
+                            list = new ArrayList<>();
+                        } else {
+                            list = Arrays.asList(files);
+                            Collections.sort(list, new Comparator<File>() {
+                                @Override
+                                public int compare(File o1, File o2) {
+                                    if (o1.isDirectory() && o2.isFile())
+                                        return -1;
+                                    if (o1.isFile() && o2.isDirectory())
+                                        return 1;
+                                    return o1.getName().compareTo(o2.getName());
+                                }
+                            });
+                        }
+                        //结束录像
+                        stopRecordingVideo();
+                        //判断是否保存
+                        final AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
+                        builder.setTitle("提示")
+                                .setMessage("已结束,是否保存本次访谈?")
+                                .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        try {
+                                            if (date!=null&&itv_name!=null&&list!=null) {
+                                                if (files!=null&&!TextUtils.isEmpty(itv_show.getText())) {
+                                                    WavMerge.mergeWav(list, new File(Environment.getExternalStorageDirectory() + "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（音）.wav"));
+                                                    FileOutputStream outputStream = new FileOutputStream(Environment.getExternalStorageDirectory() +
+                                                            "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（文）.txt");
+                                                    outputStream.write(itv_show.getText().toString().getBytes());
+                                                    outputStream.close();
+
+                                                    showTip("已保存到" + Environment.getExternalStorageDirectory() + "/msc/iat/" + itv_name + "/" + date + itv_name + "采访（音）.wav");
+                                                    tv_ask.setText("请按开始并说话");
+                                                    itv_show.setText("");
+                                                    bundle = null;
+                                                }else {
+                                                    showTip("保存失败，没有访谈内容！");
+                                                }
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                })
+                                .setNegativeButton("不保存", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        File samplefiles=new File(Environment.getExternalStorageDirectory() + "/msc/iat/"+itv_name);
+                                        deleteFile(samplefiles);
+                                        tv_ask.setText("请按开始并说话");
+                                        itv_show.setText("");
+                                        bundle = null;
+                                    }
+                                })
+                                .setCancelable(false);
+                        builder.create().show();
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                    }
+                })
+                .show();
+
     }
 
     //flie：要删除的文件夹的所在位置
@@ -693,16 +714,22 @@ boolean isAsk;
     mIsRecordingVideo = false;
     record.setText("开始录制");
     // Stop recording
-    mMediaRecorder.stop();
-    mMediaRecorder.reset();
+    mMediaRecorder_front.stop();
+    mMediaRecorder_front.reset();
+    mMediaRecorder_back.stop();
+    mMediaRecorder_back.reset();
+    recordTime.stop();
+    recordTime.setBase(SystemClock.elapsedRealtime());
+    recordTime.setVisibility(View.GONE);
 
-    Activity activity = getActivity();
+        Activity activity = getActivity();
     if (null != activity) {
-        Toast.makeText(activity, "Video saved: " + mNextVideoAbsolutePath,
+        Toast.makeText(activity, "Video saved: " + Statics.PATH_VIDEO,
                 Toast.LENGTH_SHORT).show();
-        L.d( "Video saved: " + mNextVideoAbsolutePath);
+        L.d( "Video saved: " + Statics.PATH_VIDEO);
     }
-    mNextVideoAbsolutePath = null;
+    VideoPath_front = null;
+    VideoPath_back=null;
     startPreview(false);
     startPreview(true);
 }
@@ -714,7 +741,8 @@ boolean isAsk;
             L.d("这里");
             closePreviewSession(false);
             closePreviewSession(true);
-            setUpMediaRecorder();
+            setUpMediaRecorder(false);
+            setUpMediaRecorder(true);
             SurfaceTexture texture_front = this.texture_front.getSurfaceTexture();
             assert texture_front != null;
             texture_front.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
@@ -724,25 +752,28 @@ boolean isAsk;
 
             mPreviewBuilder_front = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
             mPreviewBuilder_back = mCameraDevice0.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-            List<Surface> surfaces = new ArrayList<>();
+            List<Surface> surfaces_front = new ArrayList<>();
+            List<Surface> surfaces_back = new ArrayList<>();
 
             // Set up Surface for the camera preview
             Surface previewSurface_front = new Surface(texture_front);
             Surface previewSurface_back= new Surface(texture_back);
-            surfaces.add(previewSurface_front);
-            surfaces.add(previewSurface_back);
+            surfaces_front.add(previewSurface_front);
+            surfaces_back.add(previewSurface_back);
             mPreviewBuilder_front.addTarget(previewSurface_front);
             mPreviewBuilder_back.addTarget(previewSurface_back);
 
             // Set up Surface for the MediaRecorder
-            Surface recorderSurface = mMediaRecorder.getSurface();
-            surfaces.add(recorderSurface);
-            mPreviewBuilder_front.addTarget(recorderSurface);
-            mPreviewBuilder_back.addTarget(recorderSurface);
+            Surface recorderSurface_front = mMediaRecorder_front.getSurface();
+            Surface recorderSurface_back = mMediaRecorder_back.getSurface();
+            surfaces_front.add(recorderSurface_front);
+            surfaces_back.add(recorderSurface_back);
+            mPreviewBuilder_front.addTarget(recorderSurface_front);
+            mPreviewBuilder_back.addTarget(recorderSurface_back);
 
             // Start a capture session
             // Once the session starts, we can update the UI and start recording
-            mCameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
+            mCameraDevice.createCaptureSession(surfaces_front, new CameraCaptureSession.StateCallback() {
 
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
@@ -759,16 +790,7 @@ boolean isAsk;
                     } catch (CameraAccessException e) {
                         e.printStackTrace();
                     }
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            // UI
-                            mIsRecordingVideo = true;
-                            record.setText("停止录制");
-                            // Start recording
-                            mMediaRecorder.start();
-                        }
-                    });
+
                 }
 
                 @Override
@@ -780,7 +802,7 @@ boolean isAsk;
                 }
             },mHandler_front);
 
-            mCameraDevice0.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
+            mCameraDevice0.createCaptureSession(surfaces_back, new CameraCaptureSession.StateCallback() {
 
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
@@ -797,8 +819,7 @@ boolean isAsk;
                     } catch (CameraAccessException e) {
                         e.printStackTrace();
                     }
-                    // Start recording
-                    mMediaRecorder.start();
+
                 }
 
                 @Override
@@ -812,41 +833,77 @@ boolean isAsk;
         } catch (CameraAccessException | IOException e) {
             e.printStackTrace();
         }
-
+        //开始录像
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // UI
+                mIsRecordingVideo = true;
+                record.setText("停止录制");
+                // Start recording
+                mMediaRecorder_front.start();
+                // Start recording
+               mMediaRecorder_back.start();
+               recordTime.setVisibility(View.VISIBLE);
+               recordTime.setBase(SystemClock.elapsedRealtime());
+               recordTime.setFormat("正在录制：%s");
+                recordTime.start();
+            }
+        });
     }
-    private void setUpMediaRecorder() throws IOException {
+
+    private MediaRecorder getMediaRecorder(boolean isBack){
+        return isBack?mMediaRecorder_back:mMediaRecorder_front;
+    }
+    private void setUpMediaRecorder(boolean isBack) throws IOException {
        final Activity activity = getActivity();
        if (null == activity) {
         return;
     }
-    mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-    mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-    mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-    if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath.isEmpty()) {
-        mNextVideoAbsolutePath = getVideoFilePath();
-    }
-    mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
-    mMediaRecorder.setVideoEncodingBitRate(10000000);
-    mMediaRecorder.setVideoFrameRate(30);
-    mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
-    mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+       getMediaRecorder(isBack).setAudioSource(MediaRecorder.AudioSource.MIC);
+       getMediaRecorder(isBack).setVideoSource(MediaRecorder.VideoSource.SURFACE);
+       getMediaRecorder(isBack).setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+
+
+
+     if (isBack){
+         if (VideoPath_back == null || VideoPath_back.isEmpty()) {
+         VideoPath_back = getVideoFilePath(isBack);
+     }
+         mMediaRecorder_back.setOutputFile(VideoPath_back);
+     }else {
+         if (VideoPath_front == null || VideoPath_front.isEmpty()) {
+             VideoPath_front = getVideoFilePath(isBack);
+         }
+         mMediaRecorder_front.setOutputFile(VideoPath_front);
+     }
+        getMediaRecorder(isBack).setVideoEncodingBitRate(512*1024);
+        getMediaRecorder(isBack).setVideoFrameRate(30);
+        getMediaRecorder(isBack).setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
+        getMediaRecorder(isBack).setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        getMediaRecorder(isBack).setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
     int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
     switch (mSensorOrientation) {
         case SENSOR_ORIENTATION_DEFAULT_DEGREES:
-            mMediaRecorder.setOrientationHint(DEFAULT_ORIENTATIONS.get(rotation));
+            getMediaRecorder(isBack).setOrientationHint(DEFAULT_ORIENTATIONS.get(rotation));
             break;
         case SENSOR_ORIENTATION_INVERSE_DEGREES:
-            mMediaRecorder.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));
+            getMediaRecorder(isBack).setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));
             break;
     }
-    mMediaRecorder.prepare();
+        getMediaRecorder(isBack).prepare();
 }
 
-    private String getVideoFilePath() {
+
+    private String getVideoFilePath(boolean isBack) {
         final File dir = Environment.getExternalStorageDirectory();
-        return (dir == null ? "" : (dir.getAbsolutePath() + "/msc/"))
-                + System.nanoTime()+ ".mp4";
+        if (isBack) {
+            return (dir == null ? "" : (dir.getAbsolutePath() + "/msc/iat/"))
+                    + itv_name + "/"+date+itv_name+"_back.mp4";
+        }else {
+            return  (dir == null ? "" : (dir.getAbsolutePath() + "/msc/iat/"))
+                    + itv_name + "/"+date+itv_name+"_front.mp4";
+        }
     }
     private void configureTransform(boolean isBack,int viewWidth, int viewHeight) {
         Activity activity = getActivity();
@@ -913,9 +970,17 @@ boolean isAsk;
                 mCameraDevice.close();
                 mCameraDevice = null;
             }
-            if (null != mMediaRecorder) {
-                mMediaRecorder.release();
-                mMediaRecorder = null;
+            if (null != mCameraDevice0) {
+                mCameraDevice0.close();
+                mCameraDevice0 = null;
+            }
+            if (null != mMediaRecorder_front) {
+                mMediaRecorder_front.release();
+                mMediaRecorder_front = null;
+            }
+            if (null != mMediaRecorder_back) {
+                mMediaRecorder_back.release();
+                mMediaRecorder_back = null;
             }
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera closing.");
@@ -926,7 +991,7 @@ boolean isAsk;
     }
 
     private Integer mSensorOrientation;
-    private String mNextVideoAbsolutePath;
+    private String VideoPath_front,VideoPath_back;
 
 
 
@@ -968,7 +1033,7 @@ boolean isAsk;
                     texture_back.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
                 }
                 configureTransform(true,width, height);
-                mMediaRecorder = new MediaRecorder();
+                mMediaRecorder_back = new MediaRecorder();
                 manager.openCamera(cameraId, mStateCallback_back, null);
             }else {
                 cameraId = manager.getCameraIdList()[1];     //0后   1前
@@ -990,7 +1055,7 @@ boolean isAsk;
                 texture_front.setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
             }
             configureTransform(false,width, height);
-            mMediaRecorder = new MediaRecorder();
+            mMediaRecorder_front = new MediaRecorder();
             manager.openCamera(cameraId, mStateCallback_front, null);
             }
 
@@ -1264,7 +1329,7 @@ boolean isAsk;
             switch (message.what){
                 case 1:
                     if (mIsRecordingVideo) {
-                    stopRecordingVideo();
+                    endCollect();
                 } else {
                   startRecordingVideo();
                 }

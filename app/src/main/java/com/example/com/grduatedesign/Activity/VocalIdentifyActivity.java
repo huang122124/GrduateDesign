@@ -5,8 +5,8 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -14,9 +14,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.com.grduatedesign.Entity.Statics;
 import com.example.com.grduatedesign.R;
-import com.example.com.grduatedesign.Utils.ByteTransaction;
 import com.example.com.grduatedesign.Utils.L;
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.IdentityListener;
@@ -27,14 +25,9 @@ import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechEvent;
 import com.iflytek.cloud.record.PcmRecorder;
-import com.iflytek.cloud.util.VerifierUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 
 public class VocalIdentifyActivity extends AppCompatActivity implements View.OnClickListener{
 

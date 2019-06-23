@@ -1,23 +1,19 @@
 package com.example.com.grduatedesign.Fragment;
 
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.util.Log;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,9 +40,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.litepal.LitePal;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Fragment_add_person extends Fragment implements View.OnClickListener {
     private static final int PWD_TYPE_TEXT = 1;

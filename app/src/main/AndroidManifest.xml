@@ -31,6 +31,8 @@
     <uses-feature android:name="android.hardware.camera" />
 
     <application
+        tools:replace="android:appComponentFactory"
+         android:appComponentFactory="11"
         android:screenOrientation="sensorLandscape"
         android:name=".Applicition.BaseApplicition"
         android:allowBackup="true"
@@ -56,7 +58,7 @@
         <activity android:name=".Activity.VocalIdentifyActivity"/>
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">

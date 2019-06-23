@@ -4,7 +4,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,7 +17,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.com.grduatedesign.Adapter.MyAdapter;
-import com.example.com.grduatedesign.Entity.Statics;
 import com.example.com.grduatedesign.R;
 import com.example.com.grduatedesign.Utils.L;
 import com.iflytek.cloud.IdentityListener;

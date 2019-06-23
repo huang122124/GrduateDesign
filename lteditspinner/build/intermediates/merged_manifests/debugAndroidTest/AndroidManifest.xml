@@ -7,13 +7,15 @@
         android:targetSdkVersion="27" />
 
     <instrumentation
-        android:name="android.support.test.runner.AndroidJUnitRunner"
+        android:name="androidx.test.runner.AndroidJUnitRunner"
         android:functionalTest="false"
         android:handleProfiling="false"
         android:label="Tests for cn.lognteng.editspinner.lteditspinner.test"
         android:targetPackage="cn.lognteng.editspinner.lteditspinner.test" />
 
-    <application android:debuggable="true" >
+    <application
+        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+        android:debuggable="true" >
         <uses-library android:name="android.test.runner" />
     </application>
 
